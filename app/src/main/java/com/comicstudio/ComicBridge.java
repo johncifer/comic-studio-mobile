@@ -14,7 +14,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,10 +29,13 @@ public class ComicBridge {
         this.activity = a;
     }
 
-    /** 解码 JS 传来的路径：前端对含中文/特殊字符的路径做了 encodeURIComponent，避免桥传参乱码导致读不到文件 */
+    /** 解码 JS 传来的路径：前端把路径用 base64（纯 ASCII）编码后跨桥传，这里解码还原为 UTF-8 字符串。base64 不受 WebView 桥字符集误读影响，彻底规避中文路径乱码 */
     private String dec(String p) {
         if (p == null) return p;
-        try { return URLDecoder.decode(p, "UTF-8"); } catch (Exception e) { return p; }
+        try {
+            byte[] b = android.util.Base64.decode(p, android.util.Base64.DEFAULT);
+            return new String(b, java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) { return p; }
     }
 
     /** 返回建议的默认漫画文件夹（用户把文件夹拖进手机后放这里） */
@@ -49,11 +51,14 @@ public class ComicBridge {
         try {
             path = dec(path);
             File dir = new File(path);
-            if (!dir.exists() || !dir.isDirectory()) {
-                dir.mkdirs(); // 默认目录不存在则创建
+            if (!dir.exists()) {
+                if (path.equals(defaultFolder())) dir.mkdirs(); // 仅默认目录自动创建，避免乱码路径污染
+                else return "__NOACCESS__";
             }
+            if (!dir.isDirectory()) return "__NOACCESS__";
+            if (!dir.canRead()) return "__NOACCESS__"; // 未授予「所有文件访问」时 readable=false
             File[] files = dir.listFiles();
-            if (files == null) return "__NOACCESS__"; // 无读取权限（如未授予「所有文件访问」）
+            if (files == null) return "__NOACCESS__"; // 仍读不出（如权限/IO 异常）
             List<File> list = new ArrayList<>(Arrays.asList(files));
             list.sort((a, b) -> {
                 if (a.isDirectory() != b.isDirectory()) return a.isDirectory() ? -1 : 1;

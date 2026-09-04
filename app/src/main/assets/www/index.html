@@ -467,7 +467,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   var fmAccessError = false;
   var Native = (function () {
     var ok = (typeof ComicBridge !== 'undefined');
-    function enc(p) { return encodeURIComponent(p); }
+    function enc(p) { try { return btoa(unescape(encodeURIComponent(p))); } catch (e) { return p; } }
     return {
       available: ok,
       defaultFolder: function () { return ok ? ComicBridge.defaultFolder() : ''; },
