@@ -159,7 +159,23 @@ public class ComicBridge {
             path = dec(path);
             File f = new File(path);
             if (!f.exists() || f.isDirectory()) return "";
-            Bitmap bm = BitmapFactory.decodeFile(path);
+            Bitmap bm;
+            if (maxSide > 0) {
+                // 先读边界算采样率，避免超长条漫全尺寸解码导致 OOM/卡死（权限授予后才会真正解码，故「给权限后卡住」多源于此）
+                BitmapFactory.Options op = new BitmapFactory.Options();
+                op.inJustDecodeBounds = true;
+                BitmapFactory.decodeFile(path, op);
+                int w = op.outWidth, h = op.outHeight;
+                int m = Math.max(w, h);
+                int sample = 1;
+                while (m > 0 && m / (sample * 2) > maxSide && sample < 32) sample *= 2;
+                op.inJustDecodeBounds = false;
+                op.inSampleSize = sample;
+                op.inPreferredConfig = Bitmap.Config.RGB_565;
+                bm = BitmapFactory.decodeFile(path, op);
+            } else {
+                bm = BitmapFactory.decodeFile(path);
+            }
             if (bm == null) return "";
             if (maxSide > 0) {
                 int w = bm.getWidth(), h = bm.getHeight();
