@@ -743,15 +743,16 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       browseDir = ''; browseImages = []; browseIndex = 0; updateRailVisibility();
       return;
     }
+    var imgCards = [];
     items.forEach(function (it) {
       var card = document.createElement('div'); card.className = 'card';
       if (it.isDir) {
         card.innerHTML = '<div class="thumb dir">📁</div><div class="cap">' + esc(it.name) + '</div>';
         card.onclick = function () { renderComic(it.path); };
       } else if (it.isImage) {
-        var src = NB.readImageBase64(it.path, 300);
-        card.innerHTML = '<img class="thumb" src="' + (src || '') + '" onerror="this.style.visibility=\'hidden\'"><div class="cap">' + esc(it.name) + '</div>';
-        if (!src) card.querySelector('.cap').textContent = '🖼 ' + it.name;
+        card.innerHTML = '<img class="thumb" src="" onerror="this.style.visibility=\'hidden\'"><div class="cap">' + esc(it.name) + '</div>';
+        if (NB) imgCards.push(card);
+        card._path = it.path; card._name = it.name;
         card.onclick = function () { if (activeProject && activeProject.type === 'comic') { activeProject.index = Math.max(0, activeProject.files.findIndex(function (f) { return f.path === it.path; })); } else { var bi = browseImages.findIndex(function (f) { return f.path === it.path; }); if (bi >= 0) browseIndex = bi; } openEditor(null, it.name, true, it.path); };
       } else if (it.isApk) {
         card.innerHTML = '<div class="thumb dir">📦</div><div class="cap">' + esc(it.name) + '</div>';
@@ -761,6 +762,21 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       }
       grid.appendChild(card);
     });
+    // 缩略图分批懒加载：避免几百张大图一次性解码卡死主线程（表现为"软件卡住"）
+    var li = 0;
+    function lazyThumbs() {
+      if (!NB) return;
+      var end = Math.min(li + 8, imgCards.length);
+      for (; li < end; li++) {
+        var c = imgCards[li];
+        var s = NB.readImageBase64(c._path, 300);
+        var im = c.querySelector('img');
+        if (s && im) im.src = s;
+        else if (c.querySelector('.cap')) c.querySelector('.cap').textContent = '🖼 ' + (c._name || '');
+      }
+      if (li < imgCards.length) setTimeout(lazyThumbs, 25);
+    }
+    if (imgCards.length) setTimeout(lazyThumbs, 25);
     browseDir = path;
     browseImages = items.filter(function (it) { return it.isImage; }).map(function (it) { return { name: it.name, path: it.path }; });
     browseIndex = 0; updateRailVisibility();
