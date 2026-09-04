@@ -1,6 +1,8 @@
 package com.comicstudio;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
@@ -125,6 +127,41 @@ public class ComicBridge {
             return true;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    /**
+     * 读取图片并以 data URI 返回（可选等比缩放到 maxSide，0=原图）。
+     * 用于 WebView 中可靠显示手机图片，规避 file:// 跨源访问限制导致的「看不到图片」问题。
+     */
+    @JavascriptInterface
+    public String readImageBase64(String path, int maxSide) {
+        try {
+            File f = new File(path);
+            if (!f.exists() || f.isDirectory()) return "";
+            Bitmap bm = BitmapFactory.decodeFile(path);
+            if (bm == null) return "";
+            if (maxSide > 0) {
+                int w = bm.getWidth(), h = bm.getHeight();
+                int m = Math.max(w, h);
+                if (m > maxSide) {
+                    float s = (float) maxSide / m;
+                    Bitmap sc = Bitmap.createScaledBitmap(bm, Math.max(1, Math.round(w * s)), Math.max(1, Math.round(h * s)), true);
+                    bm.recycle(); bm = sc;
+                }
+            }
+            String lower = f.getName().toLowerCase();
+            Bitmap.CompressFormat fmt = Bitmap.CompressFormat.PNG;
+            String mime = "image/png";
+            if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) { fmt = Bitmap.CompressFormat.JPEG; mime = "image/jpeg"; }
+            else if (lower.endsWith(".webp")) { fmt = Bitmap.CompressFormat.WEBP; mime = "image/webp"; }
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            bm.compress(fmt, 85, bos);
+            bm.recycle();
+            String b64 = android.util.Base64.encodeToString(bos.toByteArray(), android.util.Base64.NO_WRAP);
+            return "data:" + mime + ";base64," + b64;
+        } catch (Exception e) {
+            return "";
         }
     }
 

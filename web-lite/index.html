@@ -6,78 +6,90 @@
 <title>漫画镜头工坊 · 手机端</title>
 <style>
 :root{
-  --bg:#0f0f17; --panel:#1b1b27; --panel2:#232333; --line:#2c2c3e;
-  --txt:#e9e9f2; --sub:#9a9ab2; --accent:#ff4d6d; --accent2:#7c6cff; --ok:#69db7c;
+  --bg:#0e0e16; --panel:#171722; --panel2:#20202e; --line:#2a2a3a;
+  --txt:#ececf5; --sub:#9a9ab2; --accent:#ff4d6d; --accent2:#7c6cff; --ok:#69db7c;
+  --safe-t:env(safe-area-inset-top); --safe-b:env(safe-area-inset-bottom);
+  --safe-l:env(safe-area-inset-left); --safe-r:env(safe-area-inset-right);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);height:100%;overflow:hidden;
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",system-ui,sans-serif;}
-button{font-family:inherit;border:none;cursor:pointer;}
+button{font-family:inherit;border:none;cursor:pointer;color:var(--txt);}
 input,textarea{font-family:inherit;}
 .hidden{display:none!important;}
+.empty{margin:18px 4px;padding:26px 16px;text-align:center;color:var(--sub);font-size:13px;line-height:1.8;
+  background:var(--panel);border:1px dashed var(--line);border-radius:14px;}
 
-/* App Bar */
-.appbar{display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
-  background:linear-gradient(135deg,#1a1a28,#23233a);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;}
-.logo{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;
-  font-size:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));}
-.appbar .t1{font-size:16px;font-weight:800;letter-spacing:.5px;}
-.appbar .t2{font-size:11px;color:var(--sub);margin-top:1px;}
+/* FAB */
+#fab{position:fixed;left:calc(10px + var(--safe-l));top:calc(10px + var(--safe-t));z-index:60;
+  width:46px;height:46px;border-radius:14px;background:rgba(28,28,44,.5);backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);font-size:20px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(0,0,0,.45);color:#fff;}
+/* scrim + drawer */
+#scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:65;}
+#drawer{position:fixed;left:0;top:0;bottom:0;width:86%;max-width:340px;z-index:70;background:#14141f;
+  border-right:1px solid var(--line);transform:translateX(-103%);transition:transform .22s ease;
+  display:flex;flex-direction:column;padding-top:calc(14px + var(--safe-t));}
+#drawer.open{transform:none;}
+.dw-title{font-size:13px;color:var(--sub);padding:0 16px 6px;letter-spacing:.5px;}
+.func-list{display:flex;flex-direction:column;gap:6px;padding:4px 12px 10px;}
+.func-btn{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:12px;background:var(--panel);
+  font-size:15px;font-weight:600;text-align:left;}
+.func-btn .ic{font-size:20px;}
+.func-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+.fm-head{padding:12px 16px 6px;font-size:13px;color:var(--sub);border-top:1px solid var(--line);}
+#fmPath{margin:0 16px 6px;font-size:11px;color:var(--sub);word-break:break-all;
+  background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:7px 9px;}
+#fmList{flex:1;overflow:auto;padding:4px 12px calc(16px + var(--safe-b));}
+.fm-row{display:flex;align-items:center;gap:10px;padding:12px 8px;border-radius:10px;font-size:14px;
+  border-bottom:1px solid rgba(255,255,255,.04);}
+.fm-row:active{background:var(--panel);}
+.fm-ic{width:24px;text-align:center;flex:0 0 24px;font-size:17px;}
+.fm-note{margin:10px 4px;font-size:12px;color:var(--sub);line-height:1.7;}
 
-/* Tab panes */
-.tabpane{display:none;padding:16px 14px calc(86px + env(safe-area-inset-bottom));}
-.tabpane.active{display:block;}
-.pane-head{font-size:17px;font-weight:800;margin-bottom:4px;}
+/* panes */
+.pane{position:absolute;left:0;right:0;top:0;bottom:0;overflow:auto;padding:calc(16px + var(--safe-t) + 56px) 14px calc(20px + var(--safe-b));display:none;}
+.pane.active{display:block;}
+.pane-head{font-size:19px;font-weight:800;margin-bottom:2px;}
 .hint{color:var(--sub);font-size:12.5px;line-height:1.7;margin:6px 2px 14px;}
-.pick{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
-  padding:15px;border-radius:14px;font-size:15.5px;font-weight:700;color:#fff;
-  background:linear-gradient(135deg,var(--accent),#ff7a5c);box-shadow:0 6px 18px rgba(255,77,109,.3);}
+.pick{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:14px;
+  font-size:15px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--accent),#ff7a5c);margin:6px 0;}
 .pick:active{transform:scale(.98);}
-.btn{padding:10px 12px;border-radius:11px;font-size:13px;font-weight:600;background:var(--panel2);color:var(--txt);}
+.pick.alt{background:var(--panel2);box-shadow:none;color:var(--txt);font-size:13.5px;font-weight:600;border:1px solid var(--line);}
+.btn{padding:10px 12px;border-radius:11px;font-size:13px;font-weight:600;background:var(--panel2);}
 .btn:active{transform:scale(.97);}
 .btn.primary{background:linear-gradient(135deg,var(--accent),#ff7a5c);color:#fff;}
 .btn.accent2{background:linear-gradient(135deg,var(--accent2),#4dabf7);color:#fff;}
 .btn.small{padding:8px 10px;font-size:12px;}
 .btn:disabled{opacity:.4;}
-.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;align-items:center;}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;align-items:center;}
 .row .sub{margin-left:auto;}
 .sub{color:var(--sub);font-size:12px;}
-textarea.inp,textarea.nv{width:100%;background:var(--panel);color:var(--txt);border:1px solid var(--line);
-  border-radius:11px;padding:11px;font-size:14px;line-height:1.6;resize:vertical;}
-textarea#dirInput,textarea#flInput{min-height:120px;}
-.fld{margin:10px 0;}
-.fld label{display:block;font-size:12px;color:var(--sub);margin-bottom:5px;}
-input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid var(--line);
-  border-radius:11px;padding:11px;font-size:14px;}
-.seg{display:flex;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:5px;margin:10px 0;}
-.seg button{flex:1;padding:9px;border-radius:9px;font-size:13px;font-weight:600;background:transparent;color:var(--sub);}
-.seg button.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+textarea.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:11px;
+  padding:11px;font-size:14px;line-height:1.6;resize:vertical;}
 
-/* comic browser */
-.pick.secondary{background:var(--panel2);box-shadow:none;color:var(--txt);font-size:13.5px;font-weight:600;
-  border:1px solid var(--line);margin-top:10px;padding:12px;}
-.projbar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--panel);
-  border:1px solid var(--line);margin-bottom:14px;font-size:13px;}
-.projbar .pf{font-size:18px;}
-.projbar .pn{font-weight:700;}
-.projbar .pc{color:var(--sub);margin-left:auto;}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+/* comic grid */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px;}
 .card{background:var(--panel);border-radius:12px;overflow:hidden;border:1px solid var(--line);}
-.thumb{width:100%;height:120px;object-fit:cover;display:block;background:#000;}
+.thumb{width:100%;height:118px;object-fit:cover;display:block;background:#000;}
+.thumb.dir{display:flex;align-items:center;justify-content:center;font-size:38px;background:#1d1d2b;color:var(--sub);}
 .cap{font-size:11px;padding:7px 8px;color:#cfcfe0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.card .sub{font-size:10px;color:var(--sub);padding:0 8px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.empty{margin-top:26px;text-align:center;color:var(--sub);font-size:13px;line-height:1.8;
-  background:var(--panel);border:1px dashed var(--line);border-radius:14px;padding:30px 18px;}
 
-/* director list */
-.dir-list{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
-.dir-row{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);
-  border-radius:11px;padding:9px 10px;}
-.dir-row input[type=checkbox]{margin-top:4px;width:18px;height:18px;accent-color:var(--accent);}
-.dir-row textarea{flex:1;background:transparent;border:none;color:var(--txt);font-size:13.5px;line-height:1.5;
+/* director */
+.dir-proj{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--panel);
+  border:1px solid var(--line);margin-bottom:10px;font-size:13px;}
+.dir-proj .pn{font-weight:700;}
+.dir-proj .pc{color:var(--sub);margin-left:auto;font-size:12px;}
+.dpage{background:var(--panel);border:1px solid var(--line);border-radius:13px;margin:10px 0;overflow:hidden;}
+.dpage .ph{display:flex;gap:10px;padding:9px 10px;align-items:center;background:rgba(255,255,255,.03);}
+.dpage .pthumb{width:54px;height:54px;object-fit:cover;border-radius:8px;background:#000;flex:0 0 54px;}
+.dpage .pl{font-size:13px;font-weight:700;}
+.dpage .pc{font-size:11px;color:var(--sub);}
+.dline{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-top:1px solid rgba(255,255,255,.05);}
+.dline input[type=checkbox]{margin-top:9px;width:18px;height:18px;accent-color:var(--accent);flex:0 0 18px;}
+.dline textarea{flex:1;background:transparent;border:none;color:var(--txt);font-size:13.5px;line-height:1.5;
   resize:none;min-height:20px;}
-.dir-row.done{opacity:.55;}
-.dir-row.done textarea{text-decoration:line-through;}
+.dline.done textarea{text-decoration:line-through;color:var(--sub);}
 
 /* deband */
 .db-compare{display:flex;gap:8px;margin:12px 0;}
@@ -89,108 +101,101 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
 .db-brush{display:flex;gap:8px;align-items:center;margin:10px 0;}
 .db-brush .btn.small{flex:0 0 auto;}
 .db-brush input[type=range]{flex:1;}
+.seg{display:flex;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:5px;margin:10px 0;}
+.seg button{flex:1;padding:9px;border-radius:9px;font-size:13px;font-weight:600;background:transparent;color:var(--sub);}
+.seg button.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
 
-/* flesh output */
+/* flesh */
 .fl-out{margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px;
-  font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:50vh;overflow:auto;}
+  font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:48vh;overflow:auto;}
 .fl-out h4{margin:10px 0 4px;font-size:13px;color:var(--accent2);}
 .fl-out .tag{display:inline-block;background:var(--panel2);border-radius:8px;padding:3px 9px;margin:3px 4px 0 0;font-size:12px;}
+.fld{margin:10px 0;}
+.fld label{display:block;font-size:12px;color:var(--sub);margin-bottom:5px;}
+input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:11px;padding:11px;font-size:14px;}
 
 /* editor overlay */
-#editor{position:fixed;inset:0;display:flex;flex-direction:column;background:#000;z-index:50;}
-.edbar{display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top)) 12px 8px;
-  background:var(--panel);border-bottom:1px solid var(--line);}
-.edbar .back{background:var(--panel2);color:var(--txt);padding:8px 14px;border-radius:10px;font-size:14px;}
+#editor{position:fixed;inset:0;display:flex;flex-direction:column;background:#000;z-index:90;}
+.edbar{display:flex;align-items:center;gap:10px;padding:calc(8px + var(--safe-t)) 12px 8px;
+  background:rgba(20,20,30,.92);backdrop-filter:blur(8px);}
+.edbar .back{background:var(--panel2);padding:8px 14px;border-radius:10px;font-size:14px;}
 .edbar .fname{font-size:12.5px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .stage{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:8px;}
 #cv{max-width:100%;max-height:100%;touch-action:none;display:block;border-radius:4px;}
-.palette{position:fixed;left:0;right:0;bottom:calc(74px + env(safe-area-inset-bottom));
-  display:flex;gap:14px;justify-content:center;padding:10px;background:rgba(20,20,30,.92);backdrop-filter:blur(8px);}
+.palette{position:fixed;left:0;right:0;bottom:calc(76px + var(--safe-b));display:flex;gap:14px;justify-content:center;
+  padding:10px;background:rgba(20,20,30,.9);backdrop-filter:blur(8px);}
 .swatch{width:30px;height:30px;border-radius:50%;border:3px solid #444;}
 .swatch.active{border-color:#fff;transform:scale(1.12);}
-.toolbar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:6px;
-  padding:10px 8px calc(10px + env(safe-area-inset-bottom));background:rgba(20,20,30,.96);
-  backdrop-filter:blur(8px);border-top:1px solid var(--line);}
+.toolbar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:6px;padding:10px 8px calc(10px + var(--safe-b));
+  background:rgba(20,20,30,.95);backdrop-filter:blur(8px);border-top:1px solid var(--line);}
 .toolbar button{flex:1;min-width:0;padding:11px 4px;border-radius:11px;font-size:12.5px;font-weight:600;
-  background:var(--panel2);color:var(--txt);display:flex;flex-direction:column;align-items:center;gap:3px;}
+  background:var(--panel2);display:flex;flex-direction:column;align-items:center;gap:3px;}
 .toolbar button .ic{font-size:17px;}
 .toolbar button.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
 .toolbar button.accent{background:linear-gradient(135deg,var(--accent),#ff7a5c);color:#fff;}
 
-/* tab bar */
-.tabbar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:2px;z-index:40;
-  background:linear-gradient(180deg,#171722,#101019);border-top:1px solid var(--line);
-  padding:6px 4px calc(6px + env(safe-area-inset-bottom));}
-.tabbar button{flex:1;background:none;color:var(--sub);font-size:10.5px;font-weight:600;
-  display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;border-radius:10px;}
-.tabbar button .ic{font-size:20px;}
-.tabbar button.active{color:#fff;background:rgba(255,255,255,.06);}
-.tabbar button.active .ic{filter:drop-shadow(0 0 7px var(--accent));}
-
 /* toast */
-#toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom));transform:translateX(-50%);
-  background:rgba(0,0,0,.88);color:#fff;padding:11px 18px;border-radius:22px;font-size:13px;z-index:80;
+#toast{position:fixed;left:50%;bottom:calc(90px + var(--safe-b));transform:translateX(-50%);
+  background:rgba(0,0,0,.88);color:#fff;padding:11px 18px;border-radius:22px;font-size:13px;z-index:120;
   max-width:84%;text-align:center;opacity:0;transition:opacity .25s;pointer-events:none;}
 #toast.show{opacity:1;}
 </style>
 </head>
 <body>
-<header class="appbar">
-  <div class="logo">🎬</div>
-  <div>
-    <div class="t1">漫画镜头工坊</div>
-    <div class="t2" id="subtitle">手机端 · 离线网页 · 不依赖电脑</div>
+
+<!-- 浮标 + 抽屉 -->
+<button id="fab">☰</button>
+<div id="scrim" class="hidden"></div>
+<aside id="drawer">
+  <div class="dw-title">功能</div>
+  <div class="func-list">
+    <button class="func-btn active" data-pane="comic"><span class="ic">📚</span>漫画浏览 / 标注</button>
+    <button class="func-btn" data-pane="director"><span class="ic">🎙</span>导演台</button>
+    <button class="func-btn" data-pane="deband"><span class="ic">🧹</span>去黑条</button>
+    <button class="func-btn" data-pane="flesh"><span class="ic">✍</span>FleshOut</button>
   </div>
-</header>
+  <div class="fm-head">📁 文件管理</div>
+  <div id="fmPath"></div>
+  <div id="fmList"></div>
+</aside>
 
 <!-- ===== 漫画 ===== -->
-<section id="paneComic" class="tabpane active">
+<section id="paneComic" class="pane active">
   <div class="pane-head">📚 漫画浏览 / 标注</div>
-  <p class="hint">选中手机里的漫画项目文件夹，即可读入全部图片并标注。标注结果点「导出」下载到手机（网页无法自动写回原文件夹）。</p>
-  <button class="pick" id="folderBtn">📁 选择项目文件夹</button>
-  <button class="pick secondary" id="imgBtn">或选择单张 / 多张图片</button>
-  <div class="projbar hidden" id="projbar">
-    <span class="pf">📂</span><span class="pn" id="projName"></span><span class="pc" id="projCount"></span>
-  </div>
-  <div class="hidden" id="nativePathBar" style="display:flex;gap:8px;margin:10px 0">
-    <input id="pathInput" class="inp" style="flex:1" placeholder="文件夹路径">
-    <button class="btn primary" id="nativeGo">浏览</button>
-  </div>
+  <p class="hint" id="comicHint">点左上角 ☰ → 文件管理，浏览手机里的漫画文件夹。点图片即可进入大图标注，写回原文件夹。</p>
   <div class="grid" id="grid"></div>
   <input id="folderInput" type="file" webkitdirectory multiple hidden>
   <input id="imgInput" type="file" accept="image/*" multiple hidden>
 </section>
 
 <!-- ===== 导演台 ===== -->
-<section id="paneDirector" class="tabpane">
+<section id="paneDirector" class="pane">
   <div class="pane-head">🎙 导演台 · 台词核对</div>
-  <p class="hint">导入电脑端识别生成的项目（json/txt），或粘贴台词本。逐行核对后导出。⚠️ 配音生成与 OpenCut 导入需电脑端，本网页不接后端。</p>
-  <textarea id="dirInput" placeholder="把台词本粘贴到这里，每行一句；或点「导入文件」读取项目…"></textarea>
-  <div class="row">
-    <button class="btn" id="dirImportBtn">📄 导入文件</button>
-    <button class="btn" id="dirFolderBtn">📁 从文件夹读</button>
-    <button class="btn primary" id="dirLoad">载入台词</button>
-    <button class="btn" id="dirClear">清空</button>
-    <input id="dirFile" type="file" accept=".txt,.json,text/plain,application/json" hidden>
-    <input id="dirFolder" type="file" webkitdirectory multiple hidden>
+  <p class="hint">参考电脑端：载入项目（json）→ 按页看台词、逐句核对、合并导出。<br>点左上角 ☰ → 文件管理，选一个 .json 载入；或网页模式用下方「导入文件」。</p>
+  <div class="dir-proj hidden" id="dirProj">
+    <span>📄</span><span class="pn" id="dirProjName"></span><span class="pc" id="dirProjCount"></span>
   </div>
-  <div class="hidden" id="dirFolderWrap"><div class="row"><select id="dirFolderSel" class="inp" style="flex:1"></select><button class="btn small" id="dirFolderLoad">载入选中</button><button class="btn small" id="dirFolderSave">写回文件夹</button></div></div>
+  <div class="row">
+    <button class="btn alt" id="dirBrowse">📁 从文件夹选 json</button>
+    <button class="btn" id="dirImport">📄 导入文件</button>
+    <span class="sub" style="margin-left:auto" id="dirCount"></span>
+  </div>
   <div class="row">
     <button class="btn small" id="dirCheckAll">全选核对</button>
-    <button class="btn small" id="dirExportTxt">导出txt</button>
-    <button class="btn small" id="dirExportJson">导出json</button>
-    <span id="dirCount" class="sub" style="margin-left:auto"></span>
+    <button class="btn small" id="dirExportTxt">导出台词txt</button>
+    <button class="btn small" id="dirWriteBack">写回文件夹</button>
   </div>
-  <div id="dirList" class="dir-list"></div>
+  <div id="dirPages"></div>
+  <input id="dirFile" type="file" accept=".txt,.json,text/plain,application/json" hidden>
 </section>
 
 <!-- ===== 去黑条 ===== -->
-<section id="paneDeband" class="tabpane">
+<section id="paneDeband" class="pane">
   <div class="pane-head">🧹 去黑条 / 去条带</div>
-  <p class="hint">纯前端处理，无需电脑。选图后自动裁剪纯黑边，并可对色调条带做轻度平滑（保守处理，零线条损伤）。处理前/后实时对比，确认再导出。</p>
-  <button class="pick" id="dbPick">🖼 选择图片</button>
+  <p class="hint">纯前端处理。点左上角 ☰ → 文件管理选图片，或网页模式用「选择图片」。自动裁黑边 + 条带轻度平滑（零线条损伤），前后对比后导出。</p>
+  <button class="pick alt" id="dbBrowse">📁 从文件夹选图片</button>
+  <button class="pick" id="dbPick" style="display:none">🖼 选择图片</button>
   <input id="dbFile" type="file" accept="image/*" hidden>
-  <div class="hidden" id="dbFolderWrap"><div class="row"><select id="dbFolderSel" class="inp" style="flex:1"></select><button class="btn small" id="dbFolderLoad">用此图</button></div></div>
   <div class="seg" id="dbSeg">
     <button data-mode="crop" class="active">裁剪黑边</button>
     <button data-mode="band">条带平滑</button>
@@ -216,28 +221,26 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
 </section>
 
 <!-- ===== FleshOut ===== -->
-<section id="paneFlesh" class="tabpane">
+<section id="paneFlesh" class="pane">
   <div class="pane-head">✍ FleshOut · 润色</div>
   <div class="seg" id="flSeg">
     <button data-mode="local" class="active">本地工具</button>
     <button data-mode="api">接我的API</button>
   </div>
-
   <div id="flLocal">
-    <p class="hint">导入或粘贴小说 / 台词正文，本地生成大纲、角色表，并格式化对白。纯前端，无需联网。</p>
+    <p class="hint">导入或粘贴小说 / 台词正文，本地生成大纲、角色表，并格式化对白。点左上角 ☰ → 文件管理选 .txt；或网页模式用「导入文件」。</p>
     <textarea id="flInput" placeholder="粘贴小说正文或台词本…"></textarea>
-    <div class="hidden" id="flFolderWrap"><div class="row"><select id="flFolderSel" class="inp" style="flex:1"></select><button class="btn small" id="flFolderLoad">读入</button><button class="btn small" id="flFolderSave">写回文件夹</button></div></div>
     <div class="row">
+      <button class="btn alt" id="flBrowse">📁 从文件夹选 txt</button>
       <button class="btn" id="flImport">📄 导入文件</button>
       <button class="btn primary" id="flOutline">🗺 大纲/角色</button>
       <button class="btn" id="flFmt">💬 格式化对白</button>
       <button class="btn" id="flExport">导出txt</button>
-      <input id="flFile" type="file" accept=".txt,.md,text/plain" hidden>
     </div>
     <div id="flOutlineOut" class="fl-out"></div>
     <div id="flFmtOut" class="fl-out"></div>
+    <input id="flFile" type="file" accept=".txt,.md,text/plain" hidden>
   </div>
-
   <div id="flApi" class="hidden">
     <p class="hint">填你的 LLM 接口（OpenAI 兼容 /chat/completions）。浏览器跨域(CORS)可能拦截，需接口允许跨域或用代理。</p>
     <div class="fld"><label>接口地址</label><input class="inp" id="flEndpoint" value="https://api.openai.com/v1/chat/completions"></div>
@@ -254,7 +257,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   </div>
 </section>
 
-<!-- ===== 标注编辑器（覆盖层） ===== -->
+<!-- 标注编辑器 -->
 <section id="editor" class="hidden">
   <div class="edbar">
     <button class="back" id="backBtn">‹ 返回</button>
@@ -278,23 +281,13 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   </nav>
 </section>
 
-<nav class="tabbar">
-  <button data-tab="comic" class="active"><span class="ic">📚</span>漫画</button>
-  <button data-tab="director"><span class="ic">🎙</span>导演台</button>
-  <button data-tab="deband"><span class="ic">🧹</span>去黑条</button>
-  <button data-tab="flesh"><span class="ic">✍</span>Flesh</button>
-</nav>
-
 <div id="toast"></div>
 
 <script>
 (function () {
   "use strict";
   var $ = function (s) { return document.querySelector(s); };
-  function toast(m) {
-    var t = $('#toast'); t.textContent = m; t.classList.add('show');
-    clearTimeout(toast._t); toast._t = setTimeout(function () { t.classList.remove('show'); }, 2200);
-  }
+  function toast(m) { var t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(function () { t.classList.remove('show'); }, 2200); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function download(name, content, mime) {
     var a = document.createElement('a'); a.download = name;
@@ -304,8 +297,11 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     if (content instanceof Blob) setTimeout(function () { URL.revokeObjectURL(a.href); }, 1500);
   }
   var IMG_RE = /\.(jpe?g|png|webp|gif|bmp)$/i;
+  function nameOf(p) { var i = p.lastIndexOf('/'); return i >= 0 ? p.slice(i + 1) : p; }
+  function extOf(n) { var i = n.lastIndexOf('.'); return i >= 0 ? n.slice(i).toLowerCase() : ''; }
+  function parentOf(p) { var i = p.lastIndexOf('/'); return i > 0 ? p.slice(0, i) : (i === 0 ? '/' : p); }
 
-  /* 原生桥适配：APK 内 window.ComicBridge 由 MainActivity 注入；纯网页中为 undefined → NB 为 null */
+  /* 原生桥 */
   var Native = (function () {
     var ok = (typeof ComicBridge !== 'undefined');
     return {
@@ -313,6 +309,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       defaultFolder: function () { return ok ? ComicBridge.defaultFolder() : ''; },
       listFolder: function (p) { if (!ok) return []; try { return JSON.parse(ComicBridge.listFolder(p) || '[]'); } catch (e) { return []; } },
       readText: function (p) { return ok ? ComicBridge.readText(p) : ''; },
+      readImageBase64: function (p, max) { return ok ? ComicBridge.readImageBase64(p, max || 0) : ''; },
       saveText: function (p, c) { return ok ? ComicBridge.saveText(p, c) : false; },
       saveBase64Image: function (p, b) { return ok ? ComicBridge.saveBase64Image(p, b) : false; },
       installApk: function (p) { if (ok) ComicBridge.installApk(p); },
@@ -322,64 +319,150 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   var NB = Native.available ? Native : null;
   var NB_PATH = NB ? (Native.defaultFolder() || '/storage/emulated/0/漫画镜头工坊') : '';
 
-  /* ===== 标签切换 ===== */
-  document.querySelectorAll('.tabbar button').forEach(function (b) {
-    b.onclick = function () {
-      document.querySelectorAll('.tabbar button').forEach(function (x) { x.classList.remove('active'); });
-      b.classList.add('active');
-      var t = b.dataset.tab;
-      document.querySelectorAll('.tabpane').forEach(function (p) { p.classList.remove('active'); });
-      var id = 'pane' + t.charAt(0).toUpperCase() + t.slice(1);
-      document.getElementById(id).classList.add('active');
-    };
-  });
+  /* ===== 面板切换 ===== */
+  var currentPane = 'comic';
+  function switchPane(p) {
+    currentPane = p;
+    document.querySelectorAll('.pane').forEach(function (x) { x.classList.remove('active'); });
+    document.getElementById('pane' + p.charAt(0).toUpperCase() + p.slice(1)).classList.add('active');
+    document.querySelectorAll('.func-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.pane === p); });
+    closeDrawer();
+  }
+  document.querySelectorAll('.func-btn').forEach(function (b) { b.onclick = function () { switchPane(b.dataset.pane); }; });
 
-  /* ================= 漫画浏览 / 标注 ================= */
+  /* ===== 抽屉 / 浮标 ===== */
+  var drawerOpen = false;
+  function openDrawer() {
+    drawerOpen = true; $('#drawer').classList.add('open'); $('#scrim').classList.remove('hidden');
+    if (NB) fmRender(); else fmNote();
+  }
+  function closeDrawer() { drawerOpen = false; $('#drawer').classList.remove('open'); $('#scrim').classList.add('hidden'); }
+  $('#fab').onclick = function () { drawerOpen ? closeDrawer() : openDrawer(); };
+  $('#scrim').onclick = closeDrawer;
+  function fmNote() { $('#fmPath').textContent = ''; $('#fmList').innerHTML = '<div class="fm-note">网页模式无法浏览手机文件夹。<br>请用工件内的「选择图片 / 导入文件」按钮；或安装 APK 版以获得文件夹读写。</div>'; }
+
+  /* ===== 文件管理（共享） ===== */
+  var fmPath = NB ? NB_PATH : '';
+  function fmRender() {
+    $('#fmPath').textContent = fmPath;
+    var items = NB ? NB.listFolder(fmPath) : [];
+    var box = $('#fmList'); box.innerHTML = '';
+    var par = parentOf(fmPath);
+    if (par && par !== fmPath) box.appendChild(fmRow('📂', '.. 上级目录', function () { fmNav(par); }));
+    if (!items.length) { box.appendChild(fmRow('', '空文件夹或无权读取', null)); return; }
+    items.forEach(function (it) {
+      var ic = it.isDir ? '📁' : (it.isApk ? '📦' : (it.isImage ? '🖼' : '📄'));
+      box.appendChild(fmRow(ic, it.name, function () { fmClick(it); }));
+    });
+  }
+  function fmRow(ic, label, onClick) {
+    var row = document.createElement('div'); row.className = 'fm-row';
+    row.innerHTML = '<span class="fm-ic">' + ic + '</span><span>' + esc(label) + '</span>';
+    if (onClick) row.onclick = onClick; return row;
+  }
+  function fmNav(p) { fmPath = p; fmRender(); if (currentPane === 'comic') renderComic(p); }
+  function fmClick(it) {
+    if (it.isDir) { fmNav(it.path); return; }
+    dispatchFile(it.path, it.isImage, it.isApk);
+  }
+  function dispatchFile(path, isImage, isApk) {
+    if (isApk) { if (NB) NB.installApk(path); return; }
+    if (currentPane === 'comic') {
+      if (isImage) { openEditor(null, nameOf(path), true, path); closeDrawer(); }
+      return;
+    }
+    if (currentPane === 'director') {
+      if (/\.(json|txt)$/i.test(path)) { loadDirectorFile(path); closeDrawer(); }
+      else if (NB) NB.toast('导演台请选择 .json / .txt');
+      return;
+    }
+    if (currentPane === 'deband') {
+      if (isImage) { loadDeband(path); closeDrawer(); }
+      else if (NB) NB.toast('去黑条请选择图片');
+      return;
+    }
+    if (currentPane === 'flesh') {
+      if (/\.(txt|md)$/i.test(path)) { loadFleshText(path); closeDrawer(); }
+      else if (NB) NB.toast('FleshOut 请选择 .txt / .md');
+      return;
+    }
+  }
+
+  /* ===== 漫画浏览 / 标注 ===== */
   var editState = null;
-  var items = [];
+  function renderComic(path) {
+    fmPath = path;
+    var grid = $('#grid'); grid.innerHTML = '';
+    var items = NB ? NB.listFolder(path) : [];
+    var par = parentOf(path);
+    if (par && par !== path) {
+      var up = document.createElement('div'); up.className = 'card';
+      up.innerHTML = '<div class="thumb dir">📂</div><div class="cap">.. 上级</div>';
+      up.onclick = function () { renderComic(par); }; grid.appendChild(up);
+    }
+    if (!items.length && !(par && par !== path)) {
+      grid.innerHTML = '<div class="empty">此文件夹没有内容。<br>请在手机「内部存储/漫画镜头工坊」放入漫画图片与项目 json。</div>';
+      return;
+    }
+    items.forEach(function (it) {
+      var card = document.createElement('div'); card.className = 'card';
+      if (it.isDir) {
+        card.innerHTML = '<div class="thumb dir">📁</div><div class="cap">' + esc(it.name) + '</div>';
+        card.onclick = function () { renderComic(it.path); };
+      } else if (it.isImage) {
+        var src = NB.readImageBase64(it.path, 300);
+        card.innerHTML = '<img class="thumb" src="' + (src || '') + '" onerror="this.style.visibility=\'hidden\'"><div class="cap">' + esc(it.name) + '</div>';
+        if (!src) card.querySelector('.cap').textContent = '🖼 ' + it.name;
+        card.onclick = function () { openEditor(null, it.name, true, it.path); };
+      } else if (it.isApk) {
+        card.innerHTML = '<div class="thumb dir">📦</div><div class="cap">' + esc(it.name) + '</div>';
+        card.onclick = function () { if (NB) NB.installApk(it.path); };
+      } else {
+        card.innerHTML = '<div class="thumb dir">📄</div><div class="cap">' + esc(it.name) + '</div>';
+      }
+      grid.appendChild(card);
+    });
+  }
+  // 网页模式（无桥）：文件选择器
   function loadFiles(fileList, mode) {
     var arr = Array.prototype.slice.call(fileList);
     var imgs = arr.filter(function (f) { return IMG_RE.test(f.name); });
     if (!imgs.length) { toast('该文件夹里没有图片'); return; }
-    var folderName = (mode === 'folder' && imgs[0].webkitRelativePath) ? imgs[0].webkitRelativePath.split('/')[0] : '';
-    items = imgs.map(function (f) { return { file: f, name: f.name, rel: f.webkitRelativePath || f.name }; });
-    items.sort(function (a, b) { return a.rel.localeCompare(b.rel); });
-    $('#projbar').classList.remove('hidden');
-    $('#projName').textContent = folderName || '已选图片';
-    $('#projCount').textContent = items.length + ' 张';
-    renderGrid(); toast('已读入 ' + items.length + ' 张图片');
-  }
-  $('#folderBtn').onclick = function () { $('#folderInput').click(); };
-  $('#imgBtn').onclick = function () { $('#imgInput').click(); };
-  $('#folderInput').onchange = function (e) { loadFiles(e.target.files, 'folder'); e.target.value = ''; };
-  $('#imgInput').onchange = function (e) { loadFiles(e.target.files, 'img'); e.target.value = ''; };
-  function renderGrid() {
+    var folderName = (mode === 'folder' && imgs[0].webkitRelativePath) ? imgs[0].webkitRelativePath.split('/')[0] : '已选图片';
+    var items = imgs.map(function (f) { return { file: f, name: f.name, url: URL.createObjectURL(f) }; });
+    items.sort(function (a, b) { return a.name.localeCompare(b.name); });
     var grid = $('#grid'); grid.innerHTML = '';
-    if (!items.length) {
-      grid.innerHTML = '<div class="empty">点「📁 选择项目文件夹」在手机里选中漫画目录即可开始。<br><br>iPhone Safari 不支持选文件夹，请改用「或选择单张/多张图片」，或用安卓 / 电脑 Chrome。</div>';
-      return;
-    }
     items.forEach(function (it) {
-      var url = URL.createObjectURL(it.file);
       var card = document.createElement('div'); card.className = 'card';
-      var sub = (it.rel.indexOf('/') > -1) ? it.rel.slice(0, it.rel.lastIndexOf('/')) : '';
-      card.innerHTML = '<img class="thumb" src="' + url + '"><div class="cap">' + esc(it.name) + '</div>' + (sub ? '<div class="sub">📂 ' + esc(sub) + '</div>' : '');
-      card.onclick = function () { openEditor(url, it.name); };
+      card.innerHTML = '<img class="thumb" src="' + it.url + '"><div class="cap">' + esc(it.name) + '</div>';
+      card.onclick = function () { openEditor(it.url, it.name, false, null); };
       grid.appendChild(card);
     });
+    toast('已读入 ' + items.length + ' 张图片');
   }
-  function openEditor(url, name) {
+  if (!NB) {
+    $('#comicHint').innerHTML = '网页模式：点下方按钮选文件夹或图片（安卓/电脑 Chrome 支持选文件夹；iPhone Safari 请选单张/多张）。标注结果下载到本机。';
+    var fb = document.createElement('button'); fb.className = 'pick alt'; fb.textContent = '📁 选择项目文件夹'; fb.onclick = function () { $('#folderInput').click(); };
+    var ib = document.createElement('button'); ib.className = 'pick alt'; ib.textContent = '🖼 选择单张 / 多张图片'; ib.onclick = function () { $('#imgInput').click(); };
+    $('#grid').parentNode.insertBefore(ib, $('#grid')); $('#grid').parentNode.insertBefore(fb, $('#grid'));
+    $('#folderInput').onchange = function (e) { loadFiles(e.target.files, 'folder'); e.target.value = ''; };
+    $('#imgInput').onchange = function (e) { loadFiles(e.target.files, 'img'); e.target.value = ''; };
+  }
+  function openEditor(srcOrPath, name, bridge, rawPath) {
+    var url;
+    if (bridge && NB && rawPath) {
+      var d = NB.readImageBase64(rawPath, 1600);
+      if (!d) { toast('图片读取失败'); return; }
+      url = d;
+    } else { url = srcOrPath; }
     var img = new Image();
     img.onload = function () {
       var MAX = 1600, w = img.naturalWidth, h = img.naturalHeight;
       var scale = Math.min(1, MAX / Math.max(w, h));
       w = Math.round(w * scale); h = Math.round(h * scale);
-      var cv = $('#cv'); cv.width = w; cv.height = h;
-      cv.getContext('2d').drawImage(img, 0, 0, w, h);
-      editState = { baseImg: img, name: name, commands: [], color: '#ff4d6d', tool: 'panel', drawing: false, start: null, cur: null, pts: null };
-      $('#fname').textContent = name;
-      $('#editor').classList.remove('hidden');
-      bindCanvas();
+      var cv = $('#cv'); cv.width = w; cv.height = h; cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      editState = { baseImg: img, name: name, commands: [], color: '#ff4d6d', tool: 'panel', drawing: false, start: null, cur: null, pts: null, bridgeMode: !!bridge, rawPath: rawPath || null };
+      $('#fname').textContent = name; $('#editor').classList.remove('hidden'); bindCanvas();
     };
     img.onerror = function () { toast('图片加载失败'); };
     img.src = url;
@@ -449,126 +532,130 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     ctx.fillStyle = '#fff'; ctx.strokeStyle = color; ctx.lineWidth = 3; roundRect(ctx, x, y, bw, bh, 10); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#111'; ctx.textBaseline = 'top'; lines.forEach(function (l, i) { ctx.fillText(l, x + pad, y + pad + i * lh); });
   }
-  function saveEdit() { var cv = $('#cv'), a = document.createElement('a'); a.download = (editState.name || 'comic') + '_edited.png'; a.href = cv.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove(); toast('已导出：' + a.download); }
-
-  /* ================= 导演台 ================= */
-  var dirLines = [];
-  function extractLinesFromObj(o) {
-    var out = [];
-    function pushStr(s) {
-      s = (s || '').trim();
-      if (!s || s.length < 1) return;
-      if (/[\/\\]/.test(s)) return;
-      if (/\.(png|jpe?g|webp|gif|bmp|json|txt)$/i.test(s)) return;
-      out.push(s);
+  function saveEdit() {
+    var cv = $('#cv'), data = cv.toDataURL('image/png');
+    if (editState && editState.bridgeMode && editState.rawPath && NB) {
+      var out = editState.rawPath.replace(/(\.[a-z0-9]+)$/i, '_edited$1');
+      var ok = NB.saveBase64Image(out, data);
+      NB.saveText(editState.rawPath + '.json', JSON.stringify({ file: editState.name, commands: editState.commands }, null, 2));
+      toast(ok ? ('已写回：' + nameOf(out)) : '保存失败');
+      if (ok) renderComic(fmPath);
+    } else {
+      var a = document.createElement('a'); a.download = (editState.name || 'comic') + '_edited.png'; a.href = data; document.body.appendChild(a); a.click(); a.remove(); toast('已导出：' + a.download);
     }
-    function walk(node, depth) {
-      if (depth > 20) return;
-      if (typeof node === 'string') { pushStr(node); return; }
-      if (Array.isArray(node)) { node.forEach(function (it) { walk(it, depth + 1); }); return; }
-      if (node && typeof node === 'object') {
-        ['texts', 'lines', 'bubbles', 'dialogues', 'sentences'].forEach(function (k) {
-          if (node[k] === undefined) return;
-          var v = node[k]; (Array.isArray(v) ? v : [v]).forEach(function (it) {
-            if (typeof it === 'string') pushStr(it);
-            else if (it && it.text !== undefined) pushStr(it.text);
-            else if (it && typeof it === 'object') walk(it, depth + 1);
-          });
-        });
-        if (node.text !== undefined && typeof node.text === 'string') pushStr(node.text);
-        if (node.pages !== undefined) walk(node.pages, depth + 1);
-        Object.keys(node).forEach(function (k) {
-          if (['texts', 'lines', 'bubbles', 'dialogues', 'sentences', 'pages', 'text'].indexOf(k) >= 0) return;
-          var v = node[k];
-          if (typeof v === 'string') pushStr(v);
-          else if (v && typeof v === 'object') walk(v, depth + 1);
-        });
-      }
-    }
-    walk(o, 0);
-    // 去重
-    var seen = {}, uniq = [];
-    out.forEach(function (s) { if (!seen[s]) { seen[s] = 1; uniq.push(s); } });
-    return uniq;
   }
-  function renderDirList() {
-    var box = $('#dirList'); box.innerHTML = '';
-    $('#dirCount').textContent = dirLines.length ? (dirLines.filter(function (l) { return l.checked; }).length + '/' + dirLines.length + ' 已核对') : '';
-    dirLines.forEach(function (l, i) {
-      var row = document.createElement('div'); row.className = 'dir-row' + (l.checked ? ' done' : '');
-      var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = l.checked;
-      cb.onchange = function () { l.checked = cb.checked; row.classList.toggle('done', l.checked); $('#dirCount').textContent = dirLines.filter(function (x) { return x.checked; }).length + '/' + dirLines.length + ' 已核对'; };
-      var ta = document.createElement('textarea'); ta.value = l.text; ta.rows = 1;
-      ta.oninput = function () { l.text = ta.value; autoGrow(ta); };
-      row.appendChild(cb); row.appendChild(ta); box.appendChild(row); autoGrow(ta);
+
+  /* ===== 导演台（参考电脑端） ===== */
+  var dirObj = null, dirPath = null, dirPages = [];
+  function getPages(o) {
+    if (!o || typeof o !== 'object') return [];
+    if (o.director && o.director.pages) return o.director.pages;
+    if (o.data && o.data.director && o.data.director.pages) return o.data.director.pages;
+    if (o.data && o.data.pages) return o.data.pages;
+    if (o.pages) return o.pages;
+    return [];
+  }
+  function lineText(l) { if (typeof l === 'string') return l; if (l && typeof l === 'object') return l.text || ''; return ''; }
+  function loadDirectorFileFromText(txt, path) {
+    var obj; try { obj = JSON.parse(txt); } catch (e) { toast('JSON 解析失败'); return; }
+    dirObj = obj; dirPath = path || null;
+    var pages = getPages(obj);
+    dirPages = pages.map(function (p) { return p; });
+    renderDirector();
+    var n = 0; pages.forEach(function (p) { n += (p.lines || []).length; });
+    $('#dirProj').classList.remove('hidden');
+    $('#dirProjName').textContent = path ? nameOf(path) : '已粘贴文本';
+    $('#dirProjCount').textContent = pages.length + ' 页 / ' + n + ' 句';
+    toast('已载入 ' + pages.length + ' 页 / ' + n + ' 句');
+  }
+  function loadDirectorFile(path) { loadDirectorFileFromText(NB.readText(path), path); }
+  function pageThumb(path, idx) {
+    if (!NB) return '';
+    var dir = path.substring(0, path.lastIndexOf('/'));
+    var imgs = NB.listFolder(dir).filter(function (it) { return it.isImage; })
+      .sort(function (a, b) { return a.name.localeCompare(b.name); });
+    return imgs[idx] ? NB.readImageBase64(imgs[idx].path, 500) : '';
+  }
+  function renderDirector() {
+    var box = $('#dirPages'); box.innerHTML = '';
+    var checked = 0;
+    dirPages.forEach(function (page, pi) {
+      var lines = page.lines || [];
+      var card = document.createElement('div'); card.className = 'dpage';
+      var thumb = pageThumb(dirPath, pi);
+      var label = (page.path ? nameOf(page.path) : ('第 ' + (pi + 1) + ' 页'));
+      var ph = '<div class="ph"><img class="pthumb" src="' + (thumb || '') + '" onerror="this.style.visibility=\'hidden\'">' +
+        '<div><div class="pl">' + esc(label) + '</div><div class="pc">' + lines.length + ' 句</div></div></div>';
+      card.innerHTML = ph;
+      lines.forEach(function (lineObj, li) {
+        var text = lineText(lineObj);
+        var row = document.createElement('div'); row.className = 'dline';
+        var cb = document.createElement('input'); cb.type = 'checkbox';
+        cb.onchange = function () { row.classList.toggle('done', cb.checked); if (cb.checked) checked++; else checked--; updCount(checked); };
+        var ta = document.createElement('textarea'); ta.value = text; ta.rows = 1;
+        ta.oninput = function () {
+          if (lineObj && typeof lineObj === 'object') lineObj.text = ta.value;
+          else page.lines[li] = ta.value;
+          autoGrow(ta);
+        };
+        row.appendChild(cb); row.appendChild(ta); card.appendChild(row); autoGrow(ta);
+      });
+      box.appendChild(card);
     });
+    updCount(0);
   }
   function autoGrow(ta) { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 200) + 'px'; }
-  function loadDirLines(arr) {
-    dirLines = arr.map(function (t) { return { text: t, checked: false }; });
-    renderDirList();
-    toast('载入 ' + dirLines.length + ' 句台词');
-  }
-  $('#dirLoad').onclick = function () {
-    var txt = $('#dirInput').value;
-    if (!txt.trim()) { toast('先粘贴或导入台词'); return; }
-    loadDirLines(txt.split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean));
-  };
-  $('#dirImportBtn').onclick = function () { $('#dirFile').click(); };
+  function updCount(c) { $('#dirCount').textContent = dirPages.length ? (c + '/' + totalLines() + ' 已核对') : ''; }
+  function totalLines() { var n = 0; dirPages.forEach(function (p) { n += (p.lines || []).length; }); return n; }
+  function gatherLines() { var out = []; dirPages.forEach(function (p) { (p.lines || []).forEach(function (l) { out.push(lineText(l)); }); }); return out; }
+  $('#dirBrowse').onclick = function () { if (NB) openDrawer(); else toast('网页模式请用「导入文件」'); };
+  $('#dirImport').onclick = function () { $('#dirFile').click(); };
   $('#dirFile').onchange = function (e) {
     var f = e.target.files && e.target.files[0]; if (!f) return;
     var rd = new FileReader();
     rd.onload = function () {
-      try {
-        if (/\.json$/i.test(f.name)) {
-          var obj = JSON.parse(String(rd.result));
-          var lines = extractLinesFromObj(obj);
-          if (lines.length) { loadDirLines(lines); return; }
-        }
-        // 当作纯文本
-        var t = String(rd.result);
-        loadDirLines(t.split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean));
-      } catch (err) { toast('解析失败：' + err.message); }
+      var content = String(rd.result);
+      if (/\.json$/i.test(f.name)) loadDirectorFileFromText(content, null);
+      else loadDirectorFileFromText('{"pages":[{"lines":content.split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean)}]}', null);
     };
     rd.readAsText(f); e.target.value = '';
   };
-  $('#dirClear').onclick = function () { dirLines = []; $('#dirInput').value = ''; renderDirList(); };
-  $('#dirFolderBtn').onclick = function () { $('#dirFolder').click(); };
-  $('#dirFolder').onchange = function (e) {
-    var arr = Array.prototype.slice.call(e.target.files).filter(function (f) { return /\.json$/i.test(f.name); });
-    if (!arr.length) { toast('该文件夹里没有 json'); return; }
-    var loadOne = function (f) {
-      var rd = new FileReader();
-      rd.onload = function () {
-        try { var obj = JSON.parse(String(rd.result)); var lines = extractLinesFromObj(obj); if (lines.length) loadDirLines(lines); else toast('该 json 没解析出台词'); }
-        catch (err) { toast('解析失败：' + err.message); }
-      };
-      rd.readAsText(f);
-    };
-    if (arr.length === 1) { loadOne(arr[0]); return; }
-    var box = $('#dirList');
-    box.innerHTML = '<div class="dir-row" style="flex-direction:column;gap:8px"><div style="font-weight:700">找到 ' + arr.length + ' 个 json，点一个载入：</div>' + arr.map(function (f, i) { return '<button class="btn small" data-fi="' + i + '">' + esc(f.name) + '</button>'; }).join(' ') + '</div>';
-    box.querySelectorAll('button[data-fi]').forEach(function (b) { b.onclick = function () { loadOne(arr[parseInt(b.dataset.fi, 10)]); }; });
-    toast('找到 ' + arr.length + ' 个 json，请选择');
+  $('#dirCheckAll').onclick = function () {
+    document.querySelectorAll('#dirPages .dline input[type=checkbox]').forEach(function (cb) { if (!cb.checked) { cb.checked = true; cb.onchange(); } });
   };
-  $('#dirCheckAll').onclick = function () { dirLines.forEach(function (l) { l.checked = true; }); renderDirList(); };
-  $('#dirExportTxt').onclick = function () { if (!dirLines.length) return toast('没有台词'); download('导演台台词.txt', dirLines.map(function (l) { return l.text; }).join('\n')); toast('已导出 txt'); };
-  $('#dirExportJson').onclick = function () { if (!dirLines.length) return toast('没有台词'); download('导演台台词.json', JSON.stringify(dirLines, null, 2), 'application/json'); toast('已导出 json'); };
+  $('#dirExportTxt').onclick = function () {
+    var ls = gatherLines(); if (!ls.length) return toast('没有台词');
+    download('导演台台词.txt', ls.join('\n')); toast('已导出 txt');
+  };
+  $('#dirWriteBack').onclick = function () {
+    if (!NB) { toast('网页模式无法写回'); return; }
+    if (!dirPath) { toast('仅从文件夹载入的 json 可写回'); return; }
+    var ok = NB.saveText(dirPath, JSON.stringify(dirObj, null, 2));
+    toast(ok ? ('已写回：' + nameOf(dirPath)) : '写回失败');
+  };
 
-  /* ================= 去黑条 ================= */
+  /* ===== 去黑条 ===== */
   var dbImg = null, dbMode = 'crop', dbResultCanvas = null, dbRawPath = null;
   var dbBrushOn = false, dbBrush = 44, dbMaskImg = null, dbMasking = false;
+  $('#dbBrowse').onclick = function () { if (NB) openDrawer(); else toast('网页模式请用「选择图片」'); };
   $('#dbPick').onclick = function () { $('#dbFile').click(); };
   $('#dbFile').onchange = function (e) {
     var f = e.target.files && e.target.files[0]; if (!f) return;
     var rd = new FileReader();
-    rd.onload = function () { var im = new Image(); im.onload = function () {
-      dbImg = im; dbRawPath = null; $('#dbBefore').src = String(rd.result); $('#dbAfter').style.display = 'none'; $('#dbDownload').style.display = 'none';
-      dbMaskImg = null; dbBrushOn = false; $('#dbMask').classList.add('hidden'); $('#dbBrushToggle').textContent = '✏️ 笔刷圈选：关'; $('#dbBrushRow').classList.add('hidden');
-      $('#dbStatus').textContent = '已选图，点「开始处理」';
-    }; im.src = rd.result; };
+    rd.onload = function () { var im = new Image(); im.onload = function () { setDb(im, null); }; im.src = rd.result; };
     rd.readAsDataURL(f); e.target.value = '';
   };
+  function setDb(im, raw) {
+    dbImg = im; dbRawPath = raw;
+    $('#dbBefore').src = im.src; $('#dbAfter').style.display = 'none'; $('#dbDownload').style.display = 'none';
+    dbMaskImg = null; dbBrushOn = false; $('#dbMask').classList.add('hidden'); $('#dbBrushToggle').textContent = '✏️ 笔刷圈选：关'; $('#dbBrushRow').classList.add('hidden');
+    $('#dbStatus').textContent = '已选图，点「开始处理」';
+  }
+  function loadDeband(path) {
+    var im = new Image();
+    im.onload = function () { setDb(im, path); };
+    im.src = NB.readImageBase64(path, 1600);
+  }
   document.querySelectorAll('#dbSeg button').forEach(function (b) {
     b.onclick = function () { document.querySelectorAll('#dbSeg button').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active'); dbMode = b.dataset.mode; $('#dbBrushRow').classList.toggle('hidden', dbMode === 'crop'); };
   });
@@ -605,7 +692,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       var up = y3, down = y3;
       while (up > 0 && isBand[up - 1]) up--;
       while (down < h - 1 && isBand[down + 1]) down++;
-      if (isBand[up] && isBand[down]) continue; // 整张偏暗，跳过避免破坏
+      if (isBand[up] && isBand[down]) continue;
       var topY = isBand[up] ? 0 : up, botY = isBand[down] ? h - 1 : down;
       var span = Math.max(1, down - up);
       for (var xx2 = 0; xx2 < w; xx2++) {
@@ -677,17 +764,29 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       $('#dbStatus').textContent = '完成（' + res.width + '×' + res.height + '）';
     }, 30);
   };
-  $('#dbDownload').onclick = function () { if (!dbResultCanvas) return; var a = document.createElement('a'); a.download = 'debanded.png'; a.href = dbResultCanvas.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove(); toast('已导出 debanded.png'); };
+  $('#dbDownload').onclick = function () {
+    if (!dbResultCanvas) return;
+    if (NB && dbRawPath) {
+      var out = dbRawPath.replace(/(\.[a-z0-9]+)$/i, '_debanded$1');
+      var ok = NB.saveBase64Image(out, dbResultCanvas.toDataURL('image/png'));
+      toast(ok ? ('已写回：' + nameOf(out)) : '保存失败');
+      if (ok) renderComic(fmPath);
+    } else {
+      var a = document.createElement('a'); a.download = 'debanded.png'; a.href = dbResultCanvas.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove(); toast('已导出 debanded.png');
+    }
+  };
 
-  /* ================= FleshOut ================= */
+  /* ===== FleshOut ===== */
   document.querySelectorAll('#flSeg button').forEach(function (b) {
     b.onclick = function () { document.querySelectorAll('#flSeg button').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active'); $('#flLocal').classList.toggle('hidden', b.dataset.mode !== 'local'); $('#flApi').classList.toggle('hidden', b.dataset.mode !== 'api'); };
   });
+  $('#flBrowse').onclick = function () { if (NB) openDrawer(); else toast('网页模式请用「导入文件」'); };
   $('#flImport').onclick = function () { $('#flFile').click(); };
   $('#flFile').onchange = function (e) {
     var f = e.target.files && e.target.files[0]; if (!f) return;
     var rd = new FileReader(); rd.onload = function () { $('#flInput').value = String(rd.result); toast('已导入'); }; rd.readAsText(f); e.target.value = '';
   };
+  function loadFleshText(path) { $('#flInput').value = NB.readText(path); toast('已读入：' + nameOf(path)); }
   function buildOutline(text) {
     var lines = text.split(/\r?\n/);
     var chapters = [], cur = null;
@@ -702,7 +801,6 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       if (sp) speakers[sp[1]] = (speakers[sp[1]] || 0) + 1;
     });
     if (!chapters.length) {
-      // 没有显式章节，用空行分段作为场景
       chapters = []; var i = 1;
       text.split(/\n\s*\n/).forEach(function (blk) { if (blk.trim()) chapters.push('场景 ' + (i++) + '：' + blk.trim().slice(0, 24) + '…'); });
     }
@@ -712,10 +810,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       '<h4>👥 角色表（' + Object.keys(speakers).length + '，按出现次数）</h4>' + (spHtml || '（未识别到「角色：台词」格式）') +
       '<h4>📊 段落数</h4><div>约 ' + Math.max(1, sceneCount) + ' 段</div>';
   }
-  $('#flOutline').onclick = function () {
-    var t = $('#flInput').value; if (!t.trim()) return toast('先粘贴或导入正文');
-    $('#flOutlineOut').innerHTML = buildOutline(t);
-  };
+  $('#flOutline').onclick = function () { var t = $('#flInput').value; if (!t.trim()) return toast('先粘贴或导入正文'); $('#flOutlineOut').innerHTML = buildOutline(t); };
   $('#flFmt').onclick = function () {
     var t = $('#flInput').value; if (!t.trim()) return toast('先粘贴或导入正文');
     var out = t.split(/\r?\n/).map(function (raw) {
@@ -725,7 +820,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       return ln;
     }).join('\n');
     $('#flInput').value = out;
-    $('#flFmtOut').textContent = '已统一对白格式（角色：台词，全角冒号）。' + (/\n/.test(out) ? '' : '');
+    $('#flFmtOut').textContent = '已统一对白格式（角色：台词，全角冒号）。';
     toast('已格式化对白');
   };
   $('#flExport').onclick = function () { if (!$('#flInput').value.trim()) return toast('没有内容'); download('fleshout.txt', $('#flInput').value); toast('已导出 txt'); };
@@ -742,117 +837,18 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
         if (!c) { $('#flApiOut').textContent = '返回异常：' + JSON.stringify(j).slice(0, 400); $('#flApiStatus').textContent = '失败'; }
         else { $('#flApiOut').textContent = c; $('#flApiStatus').textContent = '完成'; }
       })
-      .catch(function (e) { $('#flApiOut').textContent = ''; $('#flApiStatus').textContent = '请求失败（多为跨域 CORS 拦截，需接口允许跨域或用代理）：' + e.message; })
+      .catch(function (e) { $('#flApiOut').textContent = ''; $('#flApiStatus').textContent = '请求失败（多为跨域 CORS 拦截）：' + e.message; })
       .finally(function () { $('#flSend').disabled = false; });
   };
   $('#flCopy').onclick = function () { if (!$('#flApiOut').textContent) return toast('没有结果'); navigator.clipboard && navigator.clipboard.writeText($('#flApiOut').textContent); toast('已复制'); };
 
-  /* ================= 原生桥集成（仅 APK 内生效；NB 为 null 时整体跳过，纯网页不变） ================= */
-  var _renderGrid = renderGrid;
-  renderGrid = function () { if (NB) return; _renderGrid(); };
+  /* ===== 原生模式启动 ===== */
   if (NB) {
-    var nbPath = NB_PATH;
-    // APK 模式下动态修正文案：可写回文件夹、可装 apk
-    var _sub = document.getElementById('subtitle'); if (_sub) _sub.textContent = '手机端 · APK 离线 · 可读写文件夹·可装APK';
-    var _chint = document.querySelector('#paneComic .hint');
-    if (_chint) _chint.innerHTML = '选中手机里的漫画项目文件夹，即可读入全部图片并标注。标注结果直接<b>写回原文件夹</b>（APK 模式），也可点 APK 卡片安装文件夹里的安装包。';
-    function nbList(p) { try { return NB.listFolder(p) || []; } catch (e) { return []; } }
-    function imgUrl(p) { return 'file://' + p; }
-    function nativeBrowse(path) {
-      nbPath = path || nbPath;
-      $('#pathInput').value = nbPath;
-      var items = nbList(nbPath);
-      var grid = $('#grid'); grid.innerHTML = '';
-      if (!items.length) { grid.innerHTML = '<div class="empty">此文件夹为空或无权读取。<br>请先授予「所有文件访问」权限（首次打开会弹窗）。</div>'; return; }
-      items.forEach(function (it) {
-        var card = document.createElement('div'); card.className = 'card';
-        if (it.isDir) {
-          card.innerHTML = '<div class="thumb dir" style="display:flex;align-items:center;justify-content:center;font-size:40px;background:#222">📁</div><div class="cap">' + esc(it.name) + '</div>';
-          card.onclick = function () { nativeBrowse(it.path); };
-        } else if (it.isImage) {
-          card.innerHTML = '<img class="thumb" src="' + imgUrl(it.path) + '" onerror="this.style.opacity=0.15"><div class="cap">' + esc(it.name) + '</div>';
-          card.onclick = function () { openEditor(imgUrl(it.path), it.name, true, it.path); };
-        } else if (it.isApk) {
-          card.innerHTML = '<div class="thumb dir" style="display:flex;align-items:center;justify-content:center;font-size:22px;background:#222">APK</div><div class="cap">' + esc(it.name) + '</div>';
-          card.onclick = function () { NB.installApk(it.path); };
-        } else {
-          card.innerHTML = '<div class="thumb dir" style="display:flex;align-items:center;justify-content:center;font-size:22px;background:#222">📄</div><div class="cap">' + esc(it.name) + '</div>';
-        }
-        grid.appendChild(card);
-      });
-    }
-    openEditor = function (url, name, bridge, rawPath) {
-      var img = new Image();
-      img.onload = function () {
-        var MAX = 1600, w = img.naturalWidth, h = img.naturalHeight;
-        var scale = Math.min(1, MAX / Math.max(w, h)); w = Math.round(w * scale); h = Math.round(h * scale);
-        var cv = $('#cv'); cv.width = w; cv.height = h; cv.getContext('2d').drawImage(img, 0, 0, w, h);
-        editState = { baseImg: img, name: name, commands: [], color: '#ff4d6d', tool: 'panel', drawing: false, start: null, cur: null, pts: null, bridgeMode: !!bridge, rawPath: rawPath || null };
-        $('#fname').textContent = name; $('#editor').classList.remove('hidden'); bindCanvas();
-      };
-      img.onerror = function () { toast('图片加载失败'); };
-      img.src = url;
-    };
-    saveEdit = function () {
-      var cv = $('#cv'); var data = cv.toDataURL('image/png');
-      if (editState && editState.bridgeMode && editState.rawPath) {
-        var out = editState.rawPath.replace(/(\.[a-z0-9]+)$/i, '_edited$1');
-        var ok = NB.saveBase64Image(out, data);
-        NB.saveText(editState.rawPath + '.json', JSON.stringify({ file: editState.name, commands: editState.commands }, null, 2));
-        toast(ok ? ('已写回：' + out.split('/').pop()) : '保存失败');
-        if (ok) nativeBrowse(nbPath);
-      } else {
-        var a = document.createElement('a'); a.download = (editState.name || 'comic') + '_edited.png'; a.href = data; document.body.appendChild(a); a.click(); a.remove(); toast('已导出：' + a.download);
-      }
-    };
-    $('#folderBtn').classList.add('hidden'); $('#imgBtn').classList.add('hidden');
-    $('#nativePathBar').classList.remove('hidden');
-    $('#nativeGo').onclick = function () { nativeBrowse($('#pathInput').value.trim() || nbPath); };
-    $('#pathInput').value = nbPath; nativeBrowse(nbPath);
-
-    function fillSel(sel, filter) {
-      sel.innerHTML = '';
-      nbList(nbPath).forEach(function (it) { if (filter(it.name)) { var o = document.createElement('option'); o.value = it.path; o.textContent = it.name; sel.appendChild(o); } });
-    }
-    // 导演台
-    $('#dirFolderWrap').classList.remove('hidden');
-    fillSel($('#dirFolderSel'), function (n) { return /\.json$/i.test(n); });
-    $('#dirFolderLoad').onclick = function () {
-      var p = $('#dirFolderSel').value; if (!p) return toast('没有可选 json');
-      try { var lines = extractLinesFromObj(JSON.parse(NB.readText(p))); if (lines.length) loadDirLines(lines); else toast('该 json 没解析出台词'); } catch (e) { toast('解析失败：' + e.message); }
-    };
-    $('#dirFolderSave').onclick = function () {
-      var p = $('#dirFolderSel').value; if (!p) return toast('先载入选中 json'); if (!dirLines.length) return toast('没有台词');
-      var ok = NB.saveText(p, JSON.stringify(dirLines, null, 2)); toast(ok ? '已写回：' + p.split('/').pop() : '写回失败');
-    };
-    // 去黑条
-    $('#dbFolderWrap').classList.remove('hidden');
-    fillSel($('#dbFolderSel'), function (n) { return /\.(png|jpe?g|webp|gif|bmp)$/i.test(n); });
-    $('#dbFolderLoad').onclick = function () {
-      var p = $('#dbFolderSel').value; if (!p) return toast('没有可选图片');
-      var im = new Image(); im.onload = function () { dbImg = im; dbRawPath = p; $('#dbBefore').src = imgUrl(p); $('#dbAfter').style.display = 'none'; $('#dbDownload').style.display = 'none'; $('#dbStatus').textContent = '已选图（来自文件夹）'; }; im.onerror = function () { toast('图片加载失败'); }; im.src = imgUrl(p);
-    };
-    $('#dbDownload').onclick = function () {
-      if (!dbResultCanvas) return;
-      if (NB && dbRawPath) {
-        var out = dbRawPath.replace(/(\.[a-z0-9]+)$/i, '_debanded$1');
-        var ok = NB.saveBase64Image(out, dbResultCanvas.toDataURL('image/png'));
-        toast(ok ? ('已写回：' + out.split('/').pop()) : '保存失败');
-        if (ok) nativeBrowse(nbPath);
-      } else {
-        var a = document.createElement('a'); a.download = 'debanded.png'; a.href = dbResultCanvas.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove(); toast('已导出 debanded.png');
-      }
-    };
-    // FleshOut
-    $('#flFolderWrap').classList.remove('hidden');
-    fillSel($('#flFolderSel'), function (n) { return /\.(txt|md)$/i.test(n); });
-    $('#flFolderLoad').onclick = function () { var p = $('#flFolderSel').value; if (!p) return toast('没有可选文本'); $('#flInput').value = NB.readText(p); toast('已读入：' + p.split('/').pop()); };
-    $('#flFolderSave').onclick = function () { var p = $('#flFolderSel').value; if (!p) return toast('先载入选中文本'); if (!$('#flInput').value.trim()) return toast('没有内容'); var ok = NB.saveText(p, $('#flInput').value); toast(ok ? '已写回：' + p.split('/').pop() : '写回失败'); };
-
-    window.onNativePermissionResult = function () { nativeBrowse(nbPath); };
+    $('#dbPick').style.display = 'none';
+    renderComic(NB_PATH);
+    fmRender();
+    window.onNativePermissionResult = function () { renderComic(NB_PATH); fmRender(); };
   }
-
-  renderGrid();
 })();
 </script>
 </body>
