@@ -181,6 +181,32 @@ public class ComicBridge {
         }
     }
 
+    /** 诊断：返回目录的 exists/isDir/canRead/canWrite/listLen/前若干文件名，用于排查「手机有文件但前端读空」 */
+    @JavascriptInterface
+    public String folderDiag(String path) {
+        try {
+            path = dec(path);
+            File dir = new File(path);
+            JSONObject o = new JSONObject();
+            o.put("path", path);
+            o.put("exists", dir.exists());
+            o.put("isDir", dir.isDirectory());
+            o.put("canRead", dir.canRead());
+            o.put("canWrite", dir.canWrite());
+            File[] fs = dir.listFiles();
+            o.put("listLen", fs == null ? -1 : fs.length);
+            JSONArray names = new JSONArray();
+            if (fs != null) {
+                int n = Math.min(fs.length, 20);
+                for (int i = 0; i < n; i++) names.put(fs[i].getName());
+            }
+            o.put("sample", names);
+            return o.toString();
+        } catch (Exception e) {
+            return "{\"err\":\"" + e.getMessage() + "\"}";
+        }
+    }
+
     /** 调起系统安装器安装指定 APK（需 REQUEST_INSTALL_PACKAGES 已授权） */
     @JavascriptInterface
     public void installApk(String path) {

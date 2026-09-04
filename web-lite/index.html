@@ -465,6 +465,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
 
   /* 原生桥 */
   var fmAccessError = false;
+  var APP_VER = '3558c5e';
   var Native = (function () {
     var ok = (typeof ComicBridge !== 'undefined');
     function enc(p) { try { return btoa(unescape(encodeURIComponent(p))); } catch (e) { return p; } }
@@ -483,6 +484,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       saveText: function (p, c) { return ok ? ComicBridge.saveText(enc(p), c) : false; },
       saveBase64Image: function (p, b) { return ok ? ComicBridge.saveBase64Image(enc(p), b) : false; },
       installApk: function (p) { if (ok) ComicBridge.installApk(enc(p)); },
+      folderDiag: function (p) { return ok ? ComicBridge.folderDiag(enc(p)) : ''; },
       toast: function (m) { if (ok) ComicBridge.toast(m); else alert(m); }
     };
   })();
@@ -515,7 +517,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   /* ===== 文件管理（共享） ===== */
   var fmPath = NB ? NB_PATH : '';
   function fmRender() {
-    $('#fmPath').textContent = fmPath;
+    $('#fmPath').textContent = fmPath + '  [v' + APP_VER + ']';
     var items = NB ? NB.listFolder(fmPath) : [];
     var box = $('#fmList'); box.innerHTML = '';
     if (fmAccessError) {
@@ -524,7 +526,18 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     }
     var par = parentOf(fmPath);
     if (par && par !== fmPath) box.appendChild(fmRow('📂', '.. 上级目录', function () { fmNav(par); }));
-    if (!items.length && !fmAccessError) { box.appendChild(fmRow('', '空文件夹（此目录确实没有文件）', null)); }
+    if (!items.length && !fmAccessError) {
+      var dInfo = '空文件夹（此目录确实没有文件）';
+      try {
+        var d = JSON.parse((NB ? NB.folderDiag(fmPath) : '') || '{}');
+        if (d.err) dInfo = 'folderDiag 错误：' + esc(d.err);
+        else dInfo = '空文件夹诊断<br>exists=' + d.exists + ' · isDir=' + d.isDir + ' · canRead=' + d.canRead + ' · listLen=' + (d.listLen === -1 ? 'null(无权限/IO错)' : d.listLen);
+        if (d.sample && d.sample.length) dInfo += '<br>前若干文件：' + esc(d.sample.join('、'));
+      } catch (e) { dInfo = '空文件夹（此目录确实没有文件）'; }
+      var drow = document.createElement('div'); drow.className = 'fm-row';
+      drow.innerHTML = '<span class="fm-ic"></span><span>' + dInfo + '</span>';
+      box.appendChild(drow);
+    }
     else items.forEach(function (it) {
       var ic = it.isDir ? '📁' : (it.isApk ? '📦' : (it.isImage ? '🖼' : '📄'));
       box.appendChild(fmRow(ic, it.name, function () { fmClick(it); }));
