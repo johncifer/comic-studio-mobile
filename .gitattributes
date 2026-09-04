@@ -1,0 +1,10 @@
+# 统一为 LF，避免 Windows CRLF 在 GitHub Actions(Linux) 里解析 YAML/脚本出错
+* text=auto eol=lf
+*.bat text eol=crlf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.bmp binary
+*.apk binary
