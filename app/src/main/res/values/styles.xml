@@ -1,0 +1,5 @@
+<resources>
+    <style name="Theme.ComicStudio" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#1f1f29</item>
+    </style>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- 覆盖整个存储，支持安装任意路径下的 APK 与读写任意漫画文件夹 -->
+    <root-path name="root" path="." />
+    <external-path name="external" path="." />
+    <external-files-path name="external_files" path="." />
+</paths>
