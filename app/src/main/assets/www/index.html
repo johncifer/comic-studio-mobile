@@ -211,9 +211,9 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
 
 <!-- 图片浮标导航 -->
 <div id="rail">
-  <button id="railPrev">‹ 上一张</button>
-  <button id="railList">≡ 列表</button>
-  <button id="railNext">下一张 ›</button>
+  <button id="railPrev">上一张</button>
+  <button id="railList">列表</button>
+  <button id="railNext">下一张</button>
 </div>
 <aside id="railDrawer">
   <div class="rh">🖼 图片列表 <button class="close" id="railClose">关闭</button></div>
@@ -223,7 +223,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
 <!-- ===== 漫画 ===== -->
 <section id="paneComic" class="pane active">
   <div class="pane-head">📚 漫画浏览 / 标注</div>
-  <p class="hint" id="comicHint">点左上角 ☰ → 文件管理，浏览手机里的漫画文件夹；进入文件夹后点「将当前目录作为项目打开」即可建立项目（支持上一张/下一张/列表）。点图片进入大图标注，写回原文件夹。</p>
+  <p class="hint" id="comicHint">点左上角 ☰ → 文件管理，浏览手机里的漫画文件夹；进入有图片的文件夹后，右上角会出现「上一张 / 列表 / 下一张」导航。点图片进入大图标注，写回原文件夹。想加入项目列表（可关闭/保存）可再点 ☰ → 文件管理 →「将当前目录作为项目打开」。</p>
   <div class="grid" id="grid"></div>
   <input id="folderInput" type="file" webkitdirectory multiple hidden>
   <input id="imgInput" type="file" accept="image/*" multiple hidden>
@@ -550,14 +550,19 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   /* ===== 图片浮标导航（右上）+ 右侧列表 ===== */
   var railBusy = false;
   function railContext() {
-    if (currentPane === 'comic' && activeProject && activeProject.type === 'comic' && activeProject.files.length > 1) {
-      return {
-        items: activeProject.files.map(function (f, i) { return { name: f.name, thumb: NB ? NB.readImageBase64(f.path, 160) : '', onSelect: function () { activeProject.index = i; openEditor(null, f.name, true, f.path); } }; }),
-        index: activeProject.index,
-        prev: function () { if (activeProject.index > 0) { activeProject.index--; var f = activeProject.files[activeProject.index]; openEditor(null, f.name, true, f.path); } },
-        next: function () { if (activeProject.index < activeProject.files.length - 1) { activeProject.index++; var f = activeProject.files[activeProject.index]; openEditor(null, f.name, true, f.path); } },
-        onMove: updateRailActive
-      };
+    if (currentPane === 'comic') {
+      var ap = (activeProject && activeProject.type === 'comic') ? activeProject : null;
+      var list = ap ? ap.files : browseImages;
+      var idx = ap ? ap.index : browseIndex;
+      if (list && list.length > 1) {
+        return {
+          items: list.map(function (f, i) { return { name: f.name, thumb: NB ? NB.readImageBase64(f.path, 160) : '', onSelect: function () { if (ap) ap.index = i; else browseIndex = i; openEditor(null, f.name, true, f.path); } }; }),
+          index: idx,
+          prev: function () { if (idx > 0) { idx--; if (ap) ap.index = idx; else browseIndex = idx; var f = list[idx]; openEditor(null, f.name, true, f.path); } },
+          next: function () { if (idx < list.length - 1) { idx++; if (ap) ap.index = idx; else browseIndex = idx; var f = list[idx]; openEditor(null, f.name, true, f.path); } },
+          onMove: updateRailActive
+        };
+      }
     }
     if (currentPane === 'deband' && activeProject && activeProject.type === 'deband' && activeProject.files.length > 1) {
       return {
@@ -605,6 +610,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
 
   /* ===== 漫画浏览 / 标注 ===== */
   var editState = null;
+  var browseDir = '', browseImages = [], browseIndex = 0;
   function renderComic(path) {
     fmPath = path;
     var grid = $('#grid'); grid.innerHTML = '';
@@ -617,6 +623,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     }
     if (!items.length && !(par && par !== path)) {
       grid.innerHTML = '<div class="empty">此文件夹没有内容。<br>请在手机「内部存储/漫画镜头工坊」放入漫画图片与项目 json。</div>';
+      browseDir = ''; browseImages = []; browseIndex = 0; updateRailVisibility();
       return;
     }
     items.forEach(function (it) {
@@ -628,7 +635,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
         var src = NB.readImageBase64(it.path, 300);
         card.innerHTML = '<img class="thumb" src="' + (src || '') + '" onerror="this.style.visibility=\'hidden\'"><div class="cap">' + esc(it.name) + '</div>';
         if (!src) card.querySelector('.cap').textContent = '🖼 ' + it.name;
-        card.onclick = function () { if (activeProject && activeProject.type === 'comic') { activeProject.index = Math.max(0, activeProject.files.findIndex(function (f) { return f.path === it.path; })); } openEditor(null, it.name, true, it.path); };
+        card.onclick = function () { if (activeProject && activeProject.type === 'comic') { activeProject.index = Math.max(0, activeProject.files.findIndex(function (f) { return f.path === it.path; })); } else { var bi = browseImages.findIndex(function (f) { return f.path === it.path; }); if (bi >= 0) browseIndex = bi; } openEditor(null, it.name, true, it.path); };
       } else if (it.isApk) {
         card.innerHTML = '<div class="thumb dir">📦</div><div class="cap">' + esc(it.name) + '</div>';
         card.onclick = function () { if (NB) NB.installApk(it.path); };
@@ -637,6 +644,9 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       }
       grid.appendChild(card);
     });
+    browseDir = path;
+    browseImages = items.filter(function (it) { return it.isImage; }).map(function (it) { return { name: it.name, path: it.path }; });
+    browseIndex = 0; updateRailVisibility();
   }
   function loadFiles(fileList, mode) {
     var arr = Array.prototype.slice.call(fileList);
