@@ -464,17 +464,25 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   function parentOf(p) { var i = p.lastIndexOf('/'); return i > 0 ? p.slice(0, i) : (i === 0 ? '/' : p); }
 
   /* 原生桥 */
+  var fmAccessError = false;
   var Native = (function () {
     var ok = (typeof ComicBridge !== 'undefined');
+    function enc(p) { return encodeURIComponent(p); }
     return {
       available: ok,
       defaultFolder: function () { return ok ? ComicBridge.defaultFolder() : ''; },
-      listFolder: function (p) { if (!ok) return []; try { return JSON.parse(ComicBridge.listFolder(p) || '[]'); } catch (e) { return []; } },
-      readText: function (p) { return ok ? ComicBridge.readText(p) : ''; },
-      readImageBase64: function (p, max) { return ok ? ComicBridge.readImageBase64(p, max || 0) : ''; },
-      saveText: function (p, c) { return ok ? ComicBridge.saveText(p, c) : false; },
-      saveBase64Image: function (p, b) { return ok ? ComicBridge.saveBase64Image(p, b) : false; },
-      installApk: function (p) { if (ok) ComicBridge.installApk(p); },
+      listFolder: function (p) {
+        if (!ok) { fmAccessError = false; return []; }
+        var raw = ComicBridge.listFolder(enc(p));
+        if (raw === '__NOACCESS__') { fmAccessError = true; return []; }
+        fmAccessError = false;
+        try { return JSON.parse(raw || '[]'); } catch (e) { return []; }
+      },
+      readText: function (p) { return ok ? ComicBridge.readText(enc(p)) : ''; },
+      readImageBase64: function (p, max) { return ok ? ComicBridge.readImageBase64(enc(p), max || 0) : ''; },
+      saveText: function (p, c) { return ok ? ComicBridge.saveText(enc(p), c) : false; },
+      saveBase64Image: function (p, b) { return ok ? ComicBridge.saveBase64Image(enc(p), b) : false; },
+      installApk: function (p) { if (ok) ComicBridge.installApk(enc(p)); },
       toast: function (m) { if (ok) ComicBridge.toast(m); else alert(m); }
     };
   })();
@@ -510,9 +518,13 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     $('#fmPath').textContent = fmPath;
     var items = NB ? NB.listFolder(fmPath) : [];
     var box = $('#fmList'); box.innerHTML = '';
+    if (fmAccessError) {
+      var wr = fmRow('⚠️', '无权读取该文件夹！请到手机「设置 → 应用 → 漫画镜头工坊 → 权限」开启「所有文件访问」，再重开本页。', null);
+      wr.classList.add('fm-warn'); box.appendChild(wr);
+    }
     var par = parentOf(fmPath);
     if (par && par !== fmPath) box.appendChild(fmRow('📂', '.. 上级目录', function () { fmNav(par); }));
-    if (!items.length) { box.appendChild(fmRow('', '空文件夹或无权读取', null)); }
+    if (!items.length && !fmAccessError) { box.appendChild(fmRow('', '空文件夹（此目录确实没有文件）', null)); }
     else items.forEach(function (it) {
       var ic = it.isDir ? '📁' : (it.isApk ? '📦' : (it.isImage ? '🖼' : '📄'));
       box.appendChild(fmRow(ic, it.name, function () { fmClick(it); }));
