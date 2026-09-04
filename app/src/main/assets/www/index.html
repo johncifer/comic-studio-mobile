@@ -45,10 +45,26 @@ input,textarea{font-family:inherit;}
   border-bottom:1px solid rgba(255,255,255,.04);}
 .fm-row:active{background:var(--panel);}
 .fm-ic{width:24px;text-align:center;flex:0 0 24px;font-size:17px;}
+
+/* 项目 */
+.proj-head{padding:12px 16px 2px;font-size:13px;color:var(--sub);border-top:1px solid var(--line);display:flex;align-items:center;}
+.proj-head .add{margin-left:auto;font-size:12px;color:var(--accent2);}
+#projList{max-height:34vh;overflow:auto;padding:2px 12px;}
+.proj-row{display:flex;align-items:center;gap:8px;padding:9px 8px;border-radius:10px;background:var(--panel);
+  margin-bottom:6px;font-size:13px;}
+.proj-row .pic{font-size:16px;flex:0 0 20px;}
+.proj-row .pn{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
+.proj-row .pc{font-size:11px;color:var(--sub);}
+.proj-row .pact{display:flex;gap:4px;flex:0 0 auto;}
+.proj-row .pact button{background:var(--panel2);border-radius:8px;padding:5px 8px;font-size:12px;}
+.proj-row.active{outline:2px solid var(--accent2);}
+
 .fm-note{margin:10px 4px;font-size:12px;color:var(--sub);line-height:1.7;}
+.fm-use{margin:6px 16px 10px;font-size:12.5px;font-weight:700;color:#fff;
+  background:linear-gradient(135deg,var(--accent2),#4dabf7);border-radius:11px;padding:10px;text-align:center;}
 
 /* panes */
-.pane{position:absolute;left:0;right:0;top:0;bottom:0;overflow:auto;padding:calc(16px + var(--safe-t) + 56px) 14px calc(20px + var(--safe-b));display:none;}
+.pane{position:absolute;left:0;right:0;top:0;bottom:0;overflow:auto;padding:calc(14px + var(--safe-t)) 14px calc(20px + var(--safe-b));display:none;}
 .pane.active{display:block;}
 .pane-head{font-size:19px;font-weight:800;margin-bottom:2px;}
 .hint{color:var(--sub);font-size:12.5px;line-height:1.7;margin:6px 2px 14px;}
@@ -59,7 +75,7 @@ input,textarea{font-family:inherit;}
 .btn{padding:10px 12px;border-radius:11px;font-size:13px;font-weight:600;background:var(--panel2);}
 .btn:active{transform:scale(.97);}
 .btn.primary{background:linear-gradient(135deg,var(--accent),#ff7a5c);color:#fff;}
-.btn.accent2{background:linear-gradient(135deg,var(--accent2),#4dabf7);color:#fff;}
+.btn.accent2{background:linear-gradient(135deg,var(--accent2),#4dabf4);color:#fff;}
 .btn.small{padding:8px 10px;font-size:12px;}
 .btn:disabled{opacity:.4;}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;align-items:center;}
@@ -97,22 +113,53 @@ textarea.inp{width:100%;background:var(--panel);color:var(--txt);border:1px soli
 .db-compare .lbl{font-size:11px;color:var(--sub);padding:6px 8px;}
 .db-compare img{width:100%;display:block;background:#000;}
 .db-stage{position:relative;line-height:0;}
-.db-stage #dbMask{position:absolute;left:0;top:0;width:100%;height:100%;touch-action:none;}
+.db-stage #dbMask, .db-stage #dbOverlay{position:absolute;left:0;top:0;width:100%;height:100%;touch-action:none;}
 .db-brush{display:flex;gap:8px;align-items:center;margin:10px 0;}
 .db-brush .btn.small{flex:0 0 auto;}
 .db-brush input[type=range]{flex:1;}
+.db-cls{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0;font-size:12.5px;}
+.db-cls label{display:flex;align-items:center;gap:5px;}
 .seg{display:flex;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:5px;margin:10px 0;}
 .seg button{flex:1;padding:9px;border-radius:9px;font-size:13px;font-weight:600;background:transparent;color:var(--sub);}
 .seg button.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+.db-legend{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0;font-size:11.5px;color:var(--sub);}
+.db-legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px;}
 
 /* flesh */
 .fl-out{margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px;
-  font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:48vh;overflow:auto;}
+  font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:44vh;overflow:auto;}
 .fl-out h4{margin:10px 0 4px;font-size:13px;color:var(--accent2);}
 .fl-out .tag{display:inline-block;background:var(--panel2);border-radius:8px;padding:3px 9px;margin:3px 4px 0 0;font-size:12px;}
 .fld{margin:10px 0;}
 .fld label{display:block;font-size:12px;color:var(--sub);margin-bottom:5px;}
 input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:11px;padding:11px;font-size:14px;}
+.tpl-head{display:flex;align-items:center;margin:14px 0 6px;font-size:13px;color:var(--sub);}
+.tpl-head .add{margin-left:auto;font-size:12px;color:var(--accent2);font-weight:700;}
+#tplList .tpl-row{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:10px;margin-bottom:8px;}
+.tpl-row .tn{font-weight:700;font-size:13.5px;}
+.tpl-row .td{font-size:11px;color:var(--sub);margin:4px 0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tpl-row .ta{display:flex;gap:6px;flex-wrap:wrap;}
+.tpl-row .ta button{background:var(--panel2);border-radius:9px;padding:7px 10px;font-size:12px;font-weight:600;}
+.tpl-row .ta .apply.primary{background:linear-gradient(135deg,var(--accent2),#4dabf4);color:#fff;}
+.tpl-edit{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px;margin-top:8px;}
+.tpl-edit .fld{margin:8px 0;}
+
+/* 图片浮标导航（右上） */
+#rail{position:fixed;right:calc(10px + var(--safe-r));top:calc(10px + var(--safe-t));z-index:60;
+  display:none;gap:6px;}
+#rail button{background:rgba(28,28,44,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:#fff;border-radius:12px;padding:9px 12px;font-size:14px;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+#railDrawer{position:fixed;right:0;top:0;bottom:0;width:82%;max-width:380px;z-index:72;background:#14141f;
+  border-left:1px solid var(--line);transform:translateX(103%);transition:transform .22s ease;
+  display:flex;flex-direction:column;padding-top:calc(14px + var(--safe-t));}
+#railDrawer.open{transform:none;}
+#railDrawer .rh{display:flex;align-items:center;padding:10px 14px;font-size:14px;font-weight:700;}
+#railDrawer .rh .close{margin-left:auto;background:var(--panel2);border-radius:9px;padding:6px 11px;font-size:12px;}
+.rail-grid{flex:1;overflow:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 12px calc(16px + var(--safe-b));}
+.rail-cell{background:var(--panel);border-radius:10px;overflow:hidden;border:2px solid transparent;}
+.rail-cell.active{border-color:var(--accent);}
+.rail-cell img{width:100%;height:90px;object-fit:cover;display:block;background:#000;}
+.rail-cell .rc{font-size:10px;padding:5px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#cfcfe0;}
 
 /* editor overlay */
 #editor{position:fixed;inset:0;display:flex;flex-direction:column;background:#000;z-index:90;}
@@ -154,15 +201,29 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     <button class="func-btn" data-pane="deband"><span class="ic">🧹</span>去黑条</button>
     <button class="func-btn" data-pane="flesh"><span class="ic">✍</span>FleshOut</button>
   </div>
+  <div class="proj-head">📂 我的项目 <span class="add" id="projClear">清空</span></div>
+  <div id="projList"></div>
   <div class="fm-head">📁 文件管理</div>
   <div id="fmPath"></div>
+  <button class="fm-use hidden" id="fmUseAsProject">✔ 将当前目录作为项目打开</button>
   <div id="fmList"></div>
+</aside>
+
+<!-- 图片浮标导航 -->
+<div id="rail">
+  <button id="railPrev">‹ 上一张</button>
+  <button id="railList">≡ 列表</button>
+  <button id="railNext">下一张 ›</button>
+</div>
+<aside id="railDrawer">
+  <div class="rh">🖼 图片列表 <button class="close" id="railClose">关闭</button></div>
+  <div class="rail-grid" id="railGrid"></div>
 </aside>
 
 <!-- ===== 漫画 ===== -->
 <section id="paneComic" class="pane active">
   <div class="pane-head">📚 漫画浏览 / 标注</div>
-  <p class="hint" id="comicHint">点左上角 ☰ → 文件管理，浏览手机里的漫画文件夹。点图片即可进入大图标注，写回原文件夹。</p>
+  <p class="hint" id="comicHint">点左上角 ☰ → 文件管理，浏览手机里的漫画文件夹；进入文件夹后点「将当前目录作为项目打开」即可建立项目（支持上一张/下一张/列表）。点图片进入大图标注，写回原文件夹。</p>
   <div class="grid" id="grid"></div>
   <input id="folderInput" type="file" webkitdirectory multiple hidden>
   <input id="imgInput" type="file" accept="image/*" multiple hidden>
@@ -171,7 +232,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
 <!-- ===== 导演台 ===== -->
 <section id="paneDirector" class="pane">
   <div class="pane-head">🎙 导演台 · 台词核对</div>
-  <p class="hint">参考电脑端：载入项目（json）→ 按页看台词、逐句核对、合并导出。<br>点左上角 ☰ → 文件管理，选一个 .json 载入；或网页模式用下方「导入文件」。</p>
+  <p class="hint">参考电脑端：载入项目（json）→ 按页看台词、逐句核对、合并导出。<br>点左上角 ☰ → 文件管理，进入含 json 的目录后「作为项目打开」，或选单个 .json 载入。</p>
   <div class="dir-proj hidden" id="dirProj">
     <span>📄</span><span class="pn" id="dirProjName"></span><span class="pc" id="dirProjCount"></span>
   </div>
@@ -192,13 +253,13 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
 <!-- ===== 去黑条 ===== -->
 <section id="paneDeband" class="pane">
   <div class="pane-head">🧹 去黑条 / 去条带</div>
-  <p class="hint">纯前端处理。点左上角 ☰ → 文件管理选图片，或网页模式用「选择图片」。自动裁黑边 + 条带轻度平滑（零线条损伤），前后对比后导出。</p>
-  <button class="pick alt" id="dbBrowse">📁 从文件夹选图片</button>
-  <button class="pick" id="dbPick" style="display:none">🖼 选择图片</button>
+  <p class="hint">笔刷圈出条带区域 → 「检测条带」自动识别黑/白/灰条（不同颜色叠加）→ 勾选要去除的类别 → 「确认并修复」按周围像素走势修补。</p>
+  <button class="pick alt" id="dbBrowse">📁 从文件夹选图片（作为项目）</button>
+  <button class="pick" id="dbPick" style="display:none">🖼 选择单张图片</button>
   <input id="dbFile" type="file" accept="image/*" hidden>
   <div class="seg" id="dbSeg">
-    <button data-mode="crop" class="active">裁剪黑边</button>
-    <button data-mode="band">条带平滑</button>
+    <button data-mode="crop">裁剪黑边</button>
+    <button data-mode="heal" class="active">去条带</button>
     <button data-mode="both">两者都做</button>
   </div>
   <div class="db-brush hidden" id="dbBrushRow">
@@ -207,14 +268,26 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     <span id="dbBrushVal" class="sub">44</span>
     <button class="btn small" id="dbBrushClear">清除</button>
   </div>
+  <button class="btn accent2" id="dbDetect">🔍 检测条带</button>
+  <div class="db-cls hidden" id="dbClsRow">
+    <label><input type="checkbox" id="dbClsBlack" checked> 黑条</label>
+    <label><input type="checkbox" id="dbClsWhite" checked> 白条</label>
+    <label><input type="checkbox" id="dbClsGray" checked> 灰条</label>
+  </div>
+  <div class="db-legend hidden" id="dbLegend">
+    <span><i style="background:rgba(255,60,90,.6)"></i>黑条</span>
+    <span><i style="background:rgba(70,150,255,.6)"></i>白条</span>
+    <span><i style="background:rgba(80,220,140,.6)"></i>灰条</span>
+    <span><i style="background:rgba(170,120,255,.5)"></i>笔刷区</span>
+  </div>
   <div class="db-compare">
-    <figure><div class="lbl">原图（笔刷模式可圈选条带）</div>
-      <div class="db-stage"><img id="dbBefore"><canvas id="dbMask" class="hidden"></canvas></div>
+    <figure><div class="lbl">原图（笔刷可圈选）</div>
+      <div class="db-stage"><img id="dbBefore"><canvas id="dbMask" class="hidden"></canvas><canvas id="dbOverlay" class="hidden"></canvas></div>
     </figure>
     <figure><div class="lbl">结果</div><img id="dbAfter"></figure>
   </div>
   <div class="row">
-    <button class="btn primary" id="dbRun">开始处理</button>
+    <button class="btn primary" id="dbRun">✅ 确认并修复</button>
     <button class="btn" id="dbDownload" style="display:none">导出PNG</button>
   </div>
   <div id="dbStatus" class="sub"></div>
@@ -228,13 +301,14 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     <button data-mode="api">接我的API</button>
   </div>
   <div id="flLocal">
-    <p class="hint">导入或粘贴小说 / 台词正文，本地生成大纲、角色表，并格式化对白。点左上角 ☰ → 文件管理选 .txt；或网页模式用「导入文件」。</p>
+    <p class="hint">导入或粘贴小说 / 台词正文，本地生成大纲、角色表，并格式化对白；或选一个本地模板直接改写。点 ☰ → 文件管理选 .txt；或「导入文件」。</p>
     <textarea id="flInput" placeholder="粘贴小说正文或台词本…"></textarea>
     <div class="row">
       <button class="btn alt" id="flBrowse">📁 从文件夹选 txt</button>
       <button class="btn" id="flImport">📄 导入文件</button>
       <button class="btn primary" id="flOutline">🗺 大纲/角色</button>
       <button class="btn" id="flFmt">💬 格式化对白</button>
+      <button class="btn accent2" id="flTplRewrite">🎯 按模板改写</button>
       <button class="btn" id="flExport">导出txt</button>
     </div>
     <div id="flOutlineOut" class="fl-out"></div>
@@ -242,7 +316,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     <input id="flFile" type="file" accept=".txt,.md,text/plain" hidden>
   </div>
   <div id="flApi" class="hidden">
-    <p class="hint">填你的 LLM 接口（OpenAI 兼容 /chat/completions）。浏览器跨域(CORS)可能拦截，需接口允许跨域或用代理。</p>
+    <p class="hint">填你的 LLM 接口（OpenAI 兼容 /chat/completions）。浏览器跨域(CORS)可能拦截，需接口允许跨域或用代理。应用模板会填入系统指令与改写要求。</p>
     <div class="fld"><label>接口地址</label><input class="inp" id="flEndpoint" value="https://api.openai.com/v1/chat/completions"></div>
     <div class="fld"><label>API Key</label><input class="inp" id="flKey" type="password" placeholder="sk-..."></div>
     <div class="fld"><label>模型</label><input class="inp" id="flModel" value="gpt-4o-mini"></div>
@@ -254,6 +328,18 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     </div>
     <div id="flApiOut" class="fl-out"></div>
     <div id="flApiStatus" class="sub"></div>
+  </div>
+  <div class="tpl-head">📚 本地模板 <span class="add" id="tplAdd">+ 新建</span></div>
+  <div id="tplList"></div>
+  <div id="tplEdit" class="tpl-edit hidden">
+    <div class="fld"><label>模板名</label><input class="inp" id="tplName" placeholder="如：第一人称紧凑改写"></div>
+    <div class="fld"><label>系统指令（API 模式用）</label><textarea class="inp" id="tplSys" style="min-height:50px" placeholder="你是一名…"></textarea></div>
+    <div class="fld"><label>改写要求（API 模式用）</label><textarea class="inp" id="tplInstr" style="min-height:40px" placeholder="节奏更紧凑…"></textarea></div>
+    <div class="fld"><label>本地规则（每行：查找|替换为；留空则仅作 API 模板）</label><textarea class="inp" id="tplRules" style="min-height:70px" placeholder="先生|男子\n说道|说"></textarea></div>
+    <div class="row">
+      <button class="btn primary" id="tplSave">保存模板</button>
+      <button class="btn" id="tplCancel">取消</button>
+    </div>
   </div>
 </section>
 
@@ -297,6 +383,8 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     if (content instanceof Blob) setTimeout(function () { URL.revokeObjectURL(a.href); }, 1500);
   }
   var IMG_RE = /\.(jpe?g|png|webp|gif|bmp)$/i;
+  var JSON_RE = /\.json$/i;
+  var TXT_RE = /\.(txt|md)$/i;
   function nameOf(p) { var i = p.lastIndexOf('/'); return i >= 0 ? p.slice(i + 1) : p; }
   function extOf(n) { var i = n.lastIndexOf('.'); return i >= 0 ? n.slice(i).toLowerCase() : ''; }
   function parentOf(p) { var i = p.lastIndexOf('/'); return i > 0 ? p.slice(0, i) : (i === 0 ? '/' : p); }
@@ -326,6 +414,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     document.querySelectorAll('.pane').forEach(function (x) { x.classList.remove('active'); });
     document.getElementById('pane' + p.charAt(0).toUpperCase() + p.slice(1)).classList.add('active');
     document.querySelectorAll('.func-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.pane === p); });
+    updateRailVisibility();
     closeDrawer();
   }
   document.querySelectorAll('.func-btn').forEach(function (b) { b.onclick = function () { switchPane(b.dataset.pane); }; });
@@ -334,12 +423,12 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   var drawerOpen = false;
   function openDrawer() {
     drawerOpen = true; $('#drawer').classList.add('open'); $('#scrim').classList.remove('hidden');
-    if (NB) fmRender(); else fmNote();
+    if (NB) { fmRender(); renderProjects(); } else fmNote();
   }
   function closeDrawer() { drawerOpen = false; $('#drawer').classList.remove('open'); $('#scrim').classList.add('hidden'); }
   $('#fab').onclick = function () { drawerOpen ? closeDrawer() : openDrawer(); };
   $('#scrim').onclick = closeDrawer;
-  function fmNote() { $('#fmPath').textContent = ''; $('#fmList').innerHTML = '<div class="fm-note">网页模式无法浏览手机文件夹。<br>请用工件内的「选择图片 / 导入文件」按钮；或安装 APK 版以获得文件夹读写。</div>'; }
+  function fmNote() { $('#fmPath').textContent = ''; $('#fmList').innerHTML = '<div class="fm-note">网页模式无法浏览手机文件夹。<br>请用工件内的「选择图片 / 导入文件」按钮；或安装 APK 版以获得文件夹读写。</div>'; $('#fmUseAsProject').classList.add('hidden'); }
 
   /* ===== 文件管理（共享） ===== */
   var fmPath = NB ? NB_PATH : '';
@@ -349,11 +438,13 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     var box = $('#fmList'); box.innerHTML = '';
     var par = parentOf(fmPath);
     if (par && par !== fmPath) box.appendChild(fmRow('📂', '.. 上级目录', function () { fmNav(par); }));
-    if (!items.length) { box.appendChild(fmRow('', '空文件夹或无权读取', null)); return; }
-    items.forEach(function (it) {
+    if (!items.length) { box.appendChild(fmRow('', '空文件夹或无权读取', null)); }
+    else items.forEach(function (it) {
       var ic = it.isDir ? '📁' : (it.isApk ? '📦' : (it.isImage ? '🖼' : '📄'));
       box.appendChild(fmRow(ic, it.name, function () { fmClick(it); }));
     });
+    var useable = NB && (currentPane === 'comic' || currentPane === 'deband' || currentPane === 'director');
+    $('#fmUseAsProject').classList.toggle('hidden', !useable);
   }
   function fmRow(ic, label, onClick) {
     var row = document.createElement('div'); row.className = 'fm-row';
@@ -368,25 +459,149 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   function dispatchFile(path, isImage, isApk) {
     if (isApk) { if (NB) NB.installApk(path); return; }
     if (currentPane === 'comic') {
-      if (isImage) { openEditor(null, nameOf(path), true, path); closeDrawer(); }
+      if (isImage) { if (activeProject && activeProject.type === 'comic') { activeProject.index = Math.max(0, activeProject.files.findIndex(function (f) { return f.path === path; })); } openEditor(null, nameOf(path), true, path); closeDrawer(); }
       return;
     }
     if (currentPane === 'director') {
-      if (/\.(json|txt)$/i.test(path)) { loadDirectorFile(path); closeDrawer(); }
+      if (JSON_RE.test(path)) { loadDirectorFile(path); closeDrawer(); }
+      else if (TXT_RE.test(path)) { loadDirectorFileFromText('{"pages":[{"lines":readTextLines(path)}]}', path); closeDrawer(); }
       else if (NB) NB.toast('导演台请选择 .json / .txt');
       return;
     }
     if (currentPane === 'deband') {
-      if (isImage) { loadDeband(path); closeDrawer(); }
+      if (isImage) { if (activeProject && activeProject.type === 'deband') { activeProject.index = Math.max(0, activeProject.files.findIndex(function (f) { return f.path === path; })); } loadDeband(path); closeDrawer(); }
       else if (NB) NB.toast('去黑条请选择图片');
       return;
     }
     if (currentPane === 'flesh') {
-      if (/\.(txt|md)$/i.test(path)) { loadFleshText(path); closeDrawer(); }
+      if (TXT_RE.test(path)) { loadFleshText(path); closeDrawer(); }
       else if (NB) NB.toast('FleshOut 请选择 .txt / .md');
       return;
     }
   }
+  function readTextLines(path) {
+    var t = NB.readText(path); return t.split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+
+  /* ===== 项目系统 ===== */
+  var projects = [];      // {id,type,name,folder,files:[{name,path}],index}
+  var activeProject = null;
+  var pidSeq = 1;
+  function projIcon(t) { return t === 'comic' ? '📚' : t === 'deband' ? '🧹' : t === 'director' ? '🎙' : '✍'; }
+  function createProject(type, folder) {
+    var items = NB ? NB.listFolder(folder) : [];
+    var files = [];
+    if (type === 'director') files = items.filter(function (i) { return JSON_RE.test(i.name); }).sort(function (a, b) { return a.name.localeCompare(b.name); }).map(function (i) { return { name: i.name, path: i.path }; });
+    else files = items.filter(function (i) { return i.isImage; }).sort(function (a, b) { return a.name.localeCompare(b.name); }).map(function (i) { return { name: i.name, path: i.path }; });
+    var p = { id: pidSeq++, type: type, name: nameOf(folder), folder: folder, files: files, index: 0 };
+    var ex = projects.findIndex(function (q) { return q.type === type && q.folder === folder; });
+    if (ex >= 0) projects.splice(ex, 1);
+    projects.push(p); activeProject = p;
+    openProject(p);
+    return p;
+  }
+  function openProject(p) {
+    activeProject = p;
+    switchPane(p.type);
+    if (p.type === 'comic') renderComic(p.folder);
+    else if (p.type === 'deband') { if (p.files.length) loadDeband(p.files[0].path); else { $('#dbBefore').removeAttribute('src'); toast('该项目没有图片'); } }
+    else if (p.type === 'director') { if (p.files.length) loadDirectorFile(p.files[0].path); else toast('该项目没有 json'); }
+    else if (p.type === 'flesh') { if (p.files.length) loadFleshText(p.files[0].path); }
+    renderProjects(); updateRailVisibility();
+  }
+  function closeProject(p) {
+    var i = projects.indexOf(p); if (i >= 0) projects.splice(i, 1);
+    if (activeProject === p) activeProject = null;
+    if (p.type === 'comic') { $('#grid').innerHTML = ''; $('#comicHint').textContent = '项目已关闭。点 ☰ → 文件管理重新打开文件夹。'; }
+    else if (p.type === 'deband') { $('#dbBefore').removeAttribute('src'); $('#dbAfter').style.display = 'none'; dbImg = null; }
+    else if (p.type === 'director') { $('#dirPages').innerHTML = ''; $('#dirProj').classList.add('hidden'); }
+    else if (p.type === 'flesh') { $('#flInput').value = ''; }
+    renderProjects(); updateRailVisibility();
+  }
+  function saveProject(p) {
+    if (!NB) { toast('网页模式无法写回'); return; }
+    if (p.type === 'comic') { toast('在图片标注页点「导出」即可逐张写回'); }
+    else if (p.type === 'deband') { if (dbResultCanvas && dbRawPath) { var out = dbRawPath.replace(/(\.[a-z0-9]+)$/i, '_debanded$1'); var ok = NB.saveBase64Image(out, dbResultCanvas.toDataURL('image/png')); toast(ok ? ('已写回：' + nameOf(out)) : '保存失败'); } else toast('先处理一张图片'); }
+    else if (p.type === 'director') { if (dirPath) { var ok2 = NB.saveText(dirPath, JSON.stringify(dirObj, null, 2)); toast(ok2 ? ('已写回：' + nameOf(dirPath)) : '写回失败'); } else toast('仅从文件夹载入的 json 可写回'); }
+    else if (p.type === 'flesh') { if ($('#flInput').value.trim()) { var outp = p.folder + '/' + (p.name || 'fleshout') + '.txt'; var ok3 = NB.saveText(outp, $('#flInput').value); toast(ok3 ? ('已写回：' + nameOf(outp)) : '保存失败'); } else toast('没有内容'); }
+  }
+  function renderProjects() {
+    var box = $('#projList'); box.innerHTML = '';
+    if (!projects.length) { box.innerHTML = '<div class="fm-note">还没有项目。在文件管理里进入文件夹后点「将当前目录作为项目打开」。</div>'; return; }
+    projects.forEach(function (p) {
+      var row = document.createElement('div'); row.className = 'proj-row' + (activeProject === p ? ' active' : '');
+      row.innerHTML = '<span class="pic">' + projIcon(p.type) + '</span><span class="pn">' + esc(p.name) + '</span>' +
+        '<span class="pc">' + p.files.length + '项</span><span class="pact">' +
+        '<button data-act="save">💾</button><button data-act="close">✕</button></span>';
+      row.querySelector('.pn').onclick = function () { openProject(p); closeDrawer(); };
+      row.querySelector('[data-act=save]').onclick = function (e) { e.stopPropagation(); saveProject(p); };
+      row.querySelector('[data-act=close]').onclick = function (e) { e.stopPropagation(); closeProject(p); closeDrawer(); };
+      box.appendChild(row);
+    });
+  }
+  $('#projClear').onclick = function () { if (!projects.length) return; projects.slice().forEach(closeProject); };
+  $('#fmUseAsProject').onclick = function () {
+    if (!NB) return;
+    var type = currentPane === 'director' ? 'director' : (currentPane === 'deband' ? 'deband' : 'comic');
+    createProject(type, fmPath); closeDrawer();
+    toast('已打开项目：' + nameOf(fmPath));
+  };
+
+  /* ===== 图片浮标导航（右上）+ 右侧列表 ===== */
+  var railBusy = false;
+  function railContext() {
+    if (currentPane === 'comic' && activeProject && activeProject.type === 'comic' && activeProject.files.length > 1) {
+      return {
+        items: activeProject.files.map(function (f, i) { return { name: f.name, thumb: NB ? NB.readImageBase64(f.path, 160) : '', onSelect: function () { activeProject.index = i; openEditor(null, f.name, true, f.path); } }; }),
+        index: activeProject.index,
+        prev: function () { if (activeProject.index > 0) { activeProject.index--; var f = activeProject.files[activeProject.index]; openEditor(null, f.name, true, f.path); } },
+        next: function () { if (activeProject.index < activeProject.files.length - 1) { activeProject.index++; var f = activeProject.files[activeProject.index]; openEditor(null, f.name, true, f.path); } },
+        onMove: updateRailActive
+      };
+    }
+    if (currentPane === 'deband' && activeProject && activeProject.type === 'deband' && activeProject.files.length > 1) {
+      return {
+        items: activeProject.files.map(function (f, i) { return { name: f.name, thumb: NB ? NB.readImageBase64(f.path, 160) : '', onSelect: function () { activeProject.index = i; loadDeband(f.path); } }; }),
+        index: activeProject.index,
+        prev: function () { if (activeProject.index > 0) { activeProject.index--; loadDeband(activeProject.files[activeProject.index].path); } },
+        next: function () { if (activeProject.index < activeProject.files.length - 1) { activeProject.index++; loadDeband(activeProject.files[activeProject.index].path); } },
+        onMove: null
+      };
+    }
+    if (currentPane === 'director' && dirPages.length > 1) {
+      return {
+        items: dirPages.map(function (pg, i) { return { name: (pg.path ? nameOf(pg.path) : ('第' + (i + 1) + '页')), thumb: pageThumb(dirPath, i), onSelect: function () { scrollToPage(i); } }; }),
+        index: dirCurPage,
+        prev: function () { if (dirCurPage > 0) { dirCurPage--; scrollToPage(dirCurPage); } },
+        next: function () { if (dirCurPage < dirPages.length - 1) { dirCurPage++; scrollToPage(dirCurPage); } },
+        onMove: null
+      };
+    }
+    return null;
+  }
+  function updateRailVisibility() {
+    var ctx = railContext();
+    $('#rail').style.display = ctx ? 'flex' : 'none';
+    if (!ctx) $('#railDrawer').classList.remove('open');
+  }
+  function updateRailActive() {
+    var ctx = railContext(); if (!ctx) return;
+    Array.prototype.forEach.call($('#railGrid').children, function (c, i) { c.classList.toggle('active', i === ctx.index); });
+  }
+  function renderRail() {
+    var ctx = railContext(); if (!ctx) return;
+    var g = $('#railGrid'); g.innerHTML = '';
+    ctx.items.forEach(function (it, i) {
+      var cell = document.createElement('div'); cell.className = 'rail-cell' + (i === ctx.index ? ' active' : '');
+      cell.innerHTML = '<img src="' + (it.thumb || '') + '" onerror="this.style.visibility=\'hidden\'"><div class="rc">' + esc(it.name) + '</div>';
+      cell.onclick = function () { it.onSelect(); updateRailActive(); };
+      g.appendChild(cell);
+    });
+  }
+  $('#railPrev').onclick = function () { var c = railContext(); if (c) { c.prev(); renderRail(); } };
+  $('#railNext').onclick = function () { var c = railContext(); if (c) { c.next(); renderRail(); } };
+  $('#railList').onclick = function () { renderRail(); $('#railDrawer').classList.add('open'); };
+  $('#railClose').onclick = function () { $('#railDrawer').classList.remove('open'); };
 
   /* ===== 漫画浏览 / 标注 ===== */
   var editState = null;
@@ -413,7 +628,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
         var src = NB.readImageBase64(it.path, 300);
         card.innerHTML = '<img class="thumb" src="' + (src || '') + '" onerror="this.style.visibility=\'hidden\'"><div class="cap">' + esc(it.name) + '</div>';
         if (!src) card.querySelector('.cap').textContent = '🖼 ' + it.name;
-        card.onclick = function () { openEditor(null, it.name, true, it.path); };
+        card.onclick = function () { if (activeProject && activeProject.type === 'comic') { activeProject.index = Math.max(0, activeProject.files.findIndex(function (f) { return f.path === it.path; })); } openEditor(null, it.name, true, it.path); };
       } else if (it.isApk) {
         card.innerHTML = '<div class="thumb dir">📦</div><div class="cap">' + esc(it.name) + '</div>';
         card.onclick = function () { if (NB) NB.installApk(it.path); };
@@ -423,7 +638,6 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       grid.appendChild(card);
     });
   }
-  // 网页模式（无桥）：文件选择器
   function loadFiles(fileList, mode) {
     var arr = Array.prototype.slice.call(fileList);
     var imgs = arr.filter(function (f) { return IMG_RE.test(f.name); });
@@ -539,14 +753,14 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       var ok = NB.saveBase64Image(out, data);
       NB.saveText(editState.rawPath + '.json', JSON.stringify({ file: editState.name, commands: editState.commands }, null, 2));
       toast(ok ? ('已写回：' + nameOf(out)) : '保存失败');
-      if (ok) renderComic(fmPath);
+      if (ok && activeProject && activeProject.type === 'comic') renderComic(activeProject.folder);
     } else {
       var a = document.createElement('a'); a.download = (editState.name || 'comic') + '_edited.png'; a.href = data; document.body.appendChild(a); a.click(); a.remove(); toast('已导出：' + a.download);
     }
   }
 
   /* ===== 导演台（参考电脑端） ===== */
-  var dirObj = null, dirPath = null, dirPages = [];
+  var dirObj = null, dirPath = null, dirPages = [], dirCurPage = 0;
   function getPages(o) {
     if (!o || typeof o !== 'object') return [];
     if (o.director && o.director.pages) return o.director.pages;
@@ -561,12 +775,14 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     dirObj = obj; dirPath = path || null;
     var pages = getPages(obj);
     dirPages = pages.map(function (p) { return p; });
+    dirCurPage = 0;
     renderDirector();
     var n = 0; pages.forEach(function (p) { n += (p.lines || []).length; });
     $('#dirProj').classList.remove('hidden');
     $('#dirProjName').textContent = path ? nameOf(path) : '已粘贴文本';
     $('#dirProjCount').textContent = pages.length + ' 页 / ' + n + ' 句';
     toast('已载入 ' + pages.length + ' 页 / ' + n + ' 句');
+    updateRailVisibility();
   }
   function loadDirectorFile(path) { loadDirectorFileFromText(NB.readText(path), path); }
   function pageThumb(path, idx) {
@@ -581,7 +797,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     var checked = 0;
     dirPages.forEach(function (page, pi) {
       var lines = page.lines || [];
-      var card = document.createElement('div'); card.className = 'dpage';
+      var card = document.createElement('div'); card.className = 'dpage'; card.id = 'dpage' + pi;
       var thumb = pageThumb(dirPath, pi);
       var label = (page.path ? nameOf(page.path) : ('第 ' + (pi + 1) + ' 页'));
       var ph = '<div class="ph"><img class="pthumb" src="' + (thumb || '') + '" onerror="this.style.visibility=\'hidden\'">' +
@@ -604,6 +820,12 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     });
     updCount(0);
   }
+  function scrollToPage(i) {
+    dirCurPage = i;
+    var el = document.getElementById('dpage' + i);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    updateRailActive();
+  }
   function autoGrow(ta) { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 200) + 'px'; }
   function updCount(c) { $('#dirCount').textContent = dirPages.length ? (c + '/' + totalLines() + ' 已核对') : ''; }
   function totalLines() { var n = 0; dirPages.forEach(function (p) { n += (p.lines || []).length; }); return n; }
@@ -615,7 +837,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     var rd = new FileReader();
     rd.onload = function () {
       var content = String(rd.result);
-      if (/\.json$/i.test(f.name)) loadDirectorFileFromText(content, null);
+      if (JSON_RE.test(f.name)) loadDirectorFileFromText(content, null);
       else loadDirectorFileFromText('{"pages":[{"lines":content.split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean)}]}', null);
     };
     rd.readAsText(f); e.target.value = '';
@@ -634,9 +856,10 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     toast(ok ? ('已写回：' + nameOf(dirPath)) : '写回失败');
   };
 
-  /* ===== 去黑条 ===== */
-  var dbImg = null, dbMode = 'crop', dbResultCanvas = null, dbRawPath = null;
+  /* ===== 去黑条 v2（条带识别 + 智能修复） ===== */
+  var dbImg = null, dbMode = 'heal', dbResultCanvas = null, dbRawPath = null;
   var dbBrushOn = false, dbBrush = 44, dbMaskImg = null, dbMasking = false;
+  var dbBars = null; // {cls:Int8Array, orient:Int8Array, w, h}
   $('#dbBrowse').onclick = function () { if (NB) openDrawer(); else toast('网页模式请用「选择图片」'); };
   $('#dbPick').onclick = function () { $('#dbFile').click(); };
   $('#dbFile').onchange = function (e) {
@@ -646,10 +869,11 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     rd.readAsDataURL(f); e.target.value = '';
   };
   function setDb(im, raw) {
-    dbImg = im; dbRawPath = raw;
+    dbImg = im; dbRawPath = raw; dbBars = null;
     $('#dbBefore').src = im.src; $('#dbAfter').style.display = 'none'; $('#dbDownload').style.display = 'none';
+    $('#dbOverlay').classList.add('hidden'); $('#dbClsRow').classList.add('hidden'); $('#dbLegend').classList.add('hidden');
     dbMaskImg = null; dbBrushOn = false; $('#dbMask').classList.add('hidden'); $('#dbBrushToggle').textContent = '✏️ 笔刷圈选：关'; $('#dbBrushRow').classList.add('hidden');
-    $('#dbStatus').textContent = '已选图，点「开始处理」';
+    $('#dbStatus').textContent = '已选图，可笔刷圈选条带后点「检测条带」';
   }
   function loadDeband(path) {
     var im = new Image();
@@ -659,6 +883,145 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   document.querySelectorAll('#dbSeg button').forEach(function (b) {
     b.onclick = function () { document.querySelectorAll('#dbSeg button').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active'); dbMode = b.dataset.mode; $('#dbBrushRow').classList.toggle('hidden', dbMode === 'crop'); };
   });
+
+  // 检测条带：识别黑/白/灰条，输出分类与方向
+  function detectBars(img, brushCanvas) {
+    var MAX = 1600, w = img.naturalWidth, h = img.naturalHeight;
+    var sc = Math.min(1, MAX / Math.max(w, h)); w = Math.round(w * sc); h = Math.round(h * sc);
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    var x = c.getContext('2d'); x.drawImage(img, 0, 0, w, h);
+    var id = x.getImageData(0, 0, w, h), a = id.data;
+    var bm = null;
+    if (brushCanvas) { bm = brushCanvas.getContext('2d').getImageData(0, 0, brushCanvas.width, brushCanvas.height).data; }
+    function brushed(px, py) {
+      if (!bm) return true;
+      if (px >= brushCanvas.width) px = brushCanvas.width - 1;
+      if (py >= brushCanvas.height) py = brushCanvas.height - 1;
+      return bm[(py * brushCanvas.width + px) * 4 + 3] > 40;
+    }
+    var lum = new Float32Array(w * h);
+    for (var i = 0, p = 0; i < w * h; i++, p += 4) lum[i] = (a[p] + a[p + 1] + a[p + 2]) / 3;
+    var rowMean = new Float32Array(h), rowStd = new Float32Array(h);
+    for (var y = 0; y < h; y++) { var s = 0, s2 = 0; for (var xx = 0; xx < w; xx++) { var l = lum[y * w + xx]; s += l; s2 += l * l; } rowMean[y] = s / w; rowStd[y] = Math.sqrt(Math.max(0, s2 / w - rowMean[y] * rowMean[y])); }
+    var colMean = new Float32Array(w), colStd = new Float32Array(w);
+    for (var cx = 0; cx < w; cx++) { var cs = 0, cs2 = 0; for (var cy = 0; cy < h; cy++) { var l2 = lum[cy * w + cx]; cs += l2; cs2 += l2 * l2; } colMean[cx] = cs / h; colStd[cx] = Math.sqrt(Math.max(0, cs2 / h - colMean[cx] * colMean[cx])); }
+    function classOf(mean, std) { if (std > 13) return 0; if (mean < 38) return 1; if (mean > 222) return 2; if (mean >= 38 && mean <= 205) return 3; return 0; }
+    var rowClass = new Int8Array(h), colClass = new Int8Array(w);
+    for (var y2 = 0; y2 < h; y2++) {
+      if (rowStd[y2] > 9) continue;
+      var cl = classOf(rowMean[y2], rowStd[y2]); if (!cl) continue;
+      var nb = 0, n = 0; for (var k = 1; k <= 3; k++) { if (y2 - k >= 0) { nb += rowMean[y2 - k]; n++; } if (y2 + k < h) { nb += rowMean[y2 + k]; n++; } }
+      var nm = n ? nb / n : rowMean[y2];
+      if (Math.abs(rowMean[y2] - nm) > 13) rowClass[y2] = cl;
+    }
+    for (var cx2 = 0; cx2 < w; cx2++) {
+      if (colStd[cx2] > 9) continue;
+      var cl2 = classOf(colMean[cx2], colStd[cx2]); if (!cl2) continue;
+      var nb2 = 0, n2 = 0; for (var k2 = 1; k2 <= 3; k2++) { if (cx2 - k2 >= 0) { nb2 += colMean[cx2 - k2]; n2++; } if (cx2 + k2 < w) { nb2 += colMean[cx2 + k2]; n2++; } }
+      var nm2 = n2 ? nb2 / n2 : colMean[cx2];
+      if (Math.abs(colMean[cx2] - nm2) > 13) colClass[cx2] = cl2;
+    }
+    var cls = new Int8Array(w * h), orient = new Int8Array(w * h);
+    // 竖条（沿 y，thin in x）
+    for (var xv = 0; xv < w; xv++) {
+      if (colClass[xv] === 0) continue;
+      var clv = colClass[xv];
+      for (var yv = 0; yv < h; yv++) { if (brushed(xv, yv)) { cls[yv * w + xv] = clv; orient[yv * w + xv] = 1; } }
+    }
+    // 横条（沿 x，thin in y，full width）—— 与竖条不冲突处填
+    for (var yh = 0; yh < h; yh++) {
+      if (rowClass[yh] === 0) continue;
+      var clh = rowClass[yh];
+      for (var xh = 0; xh < w; xh++) { if (cls[yh * w + xh] !== 0) continue; if (brushed(xh, yh)) { cls[yh * w + xh] = clh; orient[yh * w + xh] = 0; } }
+    }
+    return { cls: cls, orient: orient, w: w, h: h, rowMean: rowMean, colMean: colMean };
+  }
+  // 渲染叠加层（笔刷区 vs 条带分类）
+  function renderBarOverlay(bars, brushCanvas) {
+    var w = bars.w, h = bars.h;
+    var oc = document.createElement('canvas'); oc.width = w; oc.height = h;
+    var octx = oc.getContext('2d');
+    var oid = octx.createImageData(w, h);
+    var od = oid.data;
+    var bm = brushCanvas ? brushCanvas.getContext('2d').getImageData(0, 0, brushCanvas.width, brushCanvas.height).data : null;
+    function brushed(px, py) { if (!bm) return false; if (px >= brushCanvas.width) px = brushCanvas.width - 1; if (py >= brushCanvas.height) py = brushCanvas.height - 1; return bm[(py * brushCanvas.width + px) * 4 + 3] > 40; }
+    for (var i = 0, p = 0; i < w * h; i++, p += 4) {
+      var c = bars.cls[i];
+      if (c === 1) { od[p] = 255; od[p + 1] = 60; od[p + 2] = 90; od[p + 3] = 130; }
+      else if (c === 2) { od[p] = 70; od[p + 1] = 150; od[p + 2] = 255; od[p + 3] = 130; }
+      else if (c === 3) { od[p] = 80; od[p + 1] = 220; od[p + 2] = 140; od[p + 3] = 130; }
+      else if (bm && brushed(i % w, (i / w) | 0)) { od[p] = 170; od[p + 1] = 120; od[p + 2] = 255; od[p + 3] = 110; }
+    }
+    octx.putImageData(oid, 0, 0);
+    var ov = $('#dbOverlay'); var disp = $('#dbBefore');
+    var dw = disp.clientWidth || 1, dh = disp.clientHeight || 1;
+    ov.width = dw; ov.height = dh;
+    ov.getContext('2d').clearRect(0, 0, dw, dh);
+    ov.getContext('2d').drawImage(oc, 0, 0, dw, dh);
+    ov.classList.remove('hidden');
+  }
+  $('#dbDetect').onclick = function () {
+    if (!dbImg) return toast('先选一张图片');
+    $('#dbStatus').textContent = '检测条带中…';
+    setTimeout(function () {
+      dbBars = detectBars(dbImg, (dbBrushOn ? dbMaskImg : null));
+      var n = 0, nb = 0, nw = 0, ng = 0;
+      for (var i = 0; i < dbBars.cls.length; i++) { var c = dbBars.cls[i]; if (c) { n++; if (c === 1) nb++; else if (c === 2) nw++; else if (c === 3) ng++; } }
+      renderBarOverlay(dbBars, (dbBrushOn ? dbMaskImg : null));
+      $('#dbClsRow').classList.remove('hidden'); $('#dbLegend').classList.remove('hidden');
+      $('#dbStatus').textContent = '识别到条带 ' + n + ' 像素（黑 ' + nb + ' / 白 ' + nw + ' / 灰 ' + ng + '）。勾选要去除的类别，点「确认并修复」。';
+    }, 30);
+  };
+  // 智能修复：按周围像素走势修补被去除的条带
+  function healImage(img, bars, brushCanvas, opts) {
+    var MAX = 1600, w = img.naturalWidth, h = img.naturalHeight;
+    var sc = Math.min(1, MAX / Math.max(w, h)); w = Math.round(w * sc); h = Math.round(h * sc);
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    var x = c.getContext('2d'); x.drawImage(img, 0, 0, w, h);
+    var id = x.getImageData(0, 0, w, h), a = id.data;
+    var bm = brushCanvas ? brushCanvas.getContext('2d').getImageData(0, 0, brushCanvas.width, brushCanvas.height).data : null;
+    function brushed(px, py) { if (!bm) return true; if (px >= brushCanvas.width) px = brushCanvas.width - 1; if (py >= brushCanvas.height) py = brushCanvas.height - 1; return bm[(py * brushCanvas.width + px) * 4 + 3] > 40; }
+    var cls = bars.cls, orient = bars.orient;
+    var MAXD = 90;
+    function flanking(xx, yy, ori) {
+      // 返回 [valR,valG,valB] 在条带两侧的非条带像素均值
+      var a1 = null, b1 = null;
+      if (ori === 0) { // 横条：沿 y 找两侧
+        for (var d = 1; d <= MAXD; d++) {
+          if (yy - d >= 0 && cls[(yy - d) * w + xx] === 0) { a1 = (yy - d) * w + xx; break; }
+          if (yy + d < h && cls[(yy + d) * w + xx] === 0) { b1 = (yy + d) * w + xx; break; }
+        }
+      } else {
+        for (var d2 = 1; d2 <= MAXD; d2++) {
+          if (xx - d2 >= 0 && cls[yy * w + (xx - d2)] === 0) { a1 = yy * w + (xx - d2); break; }
+          if (xx + d2 < w && cls[yy * w + (xx + d2)] === 0) { b1 = yy * w + (xx + d2); break; }
+        }
+      }
+      return [a1, b1];
+    }
+    for (var i = 0, p = 0; i < w * h; i++, p += 4) {
+      var cl = cls[i];
+      if (!cl) continue;
+      if (!brushed(i % w, (i / w) | 0)) continue;
+      var xx = i % w, yy = (i / w) | 0;
+      if (cl === 2) { // 白条：完全漂白
+        a[p] = 255; a[p + 1] = 255; a[p + 2] = 255; a[p + 3] = 255; continue;
+      }
+      // 黑条 / 灰条：按两侧走势插值（连接边界 + 补充相邻颜色）
+      var fb = flanking(xx, yy, orient[i]);
+      if (fb[0] !== null && fb[1] !== null) {
+        var iA = fb[0] * 4, iB = fb[1] * 4;
+        var t;
+        if (orient[i] === 0) { var yA = (fb[0] / w) | 0, yB = (fb[1] / w) | 0; t = (yy - yA) / Math.max(1, yB - yA); }
+        else { var xA = fb[0] % w, xB = fb[1] % w; t = (xx - xA) / Math.max(1, xB - xA); }
+        for (var k = 0; k < 3; k++) a[p + k] = a[iA + k] * (1 - t) + a[iB + k] * t;
+        a[p + 3] = 255;
+      } else if (fb[0] !== null) { for (var k2 = 0; k2 < 3; k2++) a[p + k2] = a[fb[0] * 4 + k2]; a[p + 3] = 255; }
+      else if (fb[1] !== null) { for (var k3 = 0; k3 < 3; k3++) a[p + k3] = a[fb[1] * 4 + k3]; a[p + 3] = 255; }
+    }
+    x.putImageData(id, 0, 0);
+    return c;
+  }
   function cropBlackBorders(img) {
     var c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
     var x = c.getContext('2d'); x.drawImage(img, 0, 0);
@@ -675,38 +1038,6 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     var nc = document.createElement('canvas'); nc.width = right - left + 1; nc.height = bottom - top + 1;
     nc.getContext('2d').drawImage(c, left, top, nc.width, nc.height, 0, 0, nc.width, nc.height);
     return nc;
-  }
-  function smoothBands(img, maskCanvas) {
-    var MAX = 1600; var w = img.naturalWidth, h = img.naturalHeight;
-    var sc = Math.min(1, MAX / Math.max(w, h)); w = Math.round(w * sc); h = Math.round(h * sc);
-    var c = document.createElement('canvas'); c.width = w; c.height = h;
-    var x = c.getContext('2d'); x.drawImage(img, 0, 0, w, h);
-    var oData = x.getImageData(0, 0, w, h);
-    var d = x.getImageData(0, 0, w, h), a = d.data;
-    var means = new Float32Array(h), vars = new Float32Array(h);
-    for (var y = 0; y < h; y++) { var s = 0, s2 = 0; for (var xx = 0; xx < w; xx++) { var l = (a[(y * w + xx) * 4] + a[(y * w + xx) * 4 + 1] + a[(y * w + xx) * 4 + 2]) / 3; s += l; s2 += l * l; } means[y] = s / w; vars[y] = s2 / w - means[y] * means[y]; }
-    var isBand = new Uint8Array(h);
-    for (var y2 = 0; y2 < h; y2++) isBand[y2] = (means[y2] < 42 && vars[y2] < 26) ? 1 : 0;
-    for (var y3 = 0; y3 < h; y3++) {
-      if (!isBand[y3]) continue;
-      var up = y3, down = y3;
-      while (up > 0 && isBand[up - 1]) up--;
-      while (down < h - 1 && isBand[down + 1]) down++;
-      if (isBand[up] && isBand[down]) continue;
-      var topY = isBand[up] ? 0 : up, botY = isBand[down] ? h - 1 : down;
-      var span = Math.max(1, down - up);
-      for (var xx2 = 0; xx2 < w; xx2++) {
-        var ti = (topY * w + xx2) * 4, bi = (botY * w + xx2) * 4, ii = (y3 * w + xx2) * 4;
-        var t = (y3 - up) / span;
-        for (var k = 0; k < 3; k++) { var v = a[ti + k] * (1 - t) + a[bi + k] * t; a[ii + k] = a[ii + k] * 0.15 + v * 0.85; }
-      }
-    }
-    if (maskCanvas) {
-      var mData = maskCanvas.getContext('2d').getImageData(0, 0, w, h).data;
-      for (var p = 0; p < a.length; p += 4) { if (mData[p + 3] < 20) { a[p] = oData.data[p]; a[p + 1] = oData.data[p + 1]; a[p + 2] = oData.data[p + 2]; a[p + 3] = oData.data[p + 3]; } }
-    }
-    x.putImageData(d, 0, 0);
-    return c;
   }
   function dbSyncMask() {
     if (!dbImg) return;
@@ -745,7 +1076,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     this.textContent = '✏️ 笔刷圈选：' + (dbBrushOn ? '开' : '关');
   };
   $('#dbBrushSize').oninput = function (e) { dbBrush = parseInt(e.target.value) || 44; $('#dbBrushVal').textContent = dbBrush; };
-  $('#dbBrushClear').onclick = function () { if (dbMaskImg) dbMaskImg.getContext('2d').clearRect(0, 0, dbMaskImg.width, dbMaskImg.height); var mc = $('#dbMask'); mc.getContext('2d').clearRect(0, 0, mc.width, mc.height); };
+  $('#dbBrushClear').onclick = function () { if (dbMaskImg) dbMaskImg.getContext('2d').clearRect(0, 0, dbMaskImg.width, dbMaskImg.height); var mc = $('#dbMask'); mc.getContext('2d').clearRect(0, 0, mc.width, mc.height); $('#dbOverlay').classList.add('hidden'); };
   var dbMC = $('#dbMask');
   dbMC.addEventListener('pointerdown', function (e) { if (!dbBrushOn) return; e.preventDefault(); dbMasking = true; dbStroke._last = null; dbDot(e); });
   dbMC.addEventListener('pointermove', function (e) { if (!dbBrushOn || !dbMasking) return; e.preventDefault(); dbStroke(e); });
@@ -753,15 +1084,24 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   dbMC.addEventListener('pointerleave', function () { dbMasking = false; dbStroke._last = null; });
   $('#dbRun').onclick = function () {
     if (!dbImg) return toast('先选一张图片');
-    $('#dbStatus').textContent = '处理中…';
+    $('#dbStatus').textContent = '修复中…';
     setTimeout(function () {
-      var res = dbImg;
-      if (dbMode === 'crop' || dbMode === 'both') res = cropBlackBorders(res);
-      if (dbMode === 'band' || dbMode === 'both') res = smoothBands(res, (dbBrushOn ? dbMaskImg : null));
-      dbResultCanvas = res;
-      $('#dbAfter').src = res.toDataURL('image/png'); $('#dbAfter').style.display = 'block';
+      var clsSel = { 1: $('#dbClsBlack').checked, 2: $('#dbClsWhite').checked, 3: $('#dbClsGray').checked };
+      var src = dbImg;
+      if (dbMode === 'crop' || dbMode === 'both') src = cropBlackBorders(src);
+      if (dbMode === 'heal' || dbMode === 'both') {
+        if (!dbBars) { dbBars = detectBars(src, (dbBrushOn ? dbMaskImg : null)); }
+        // 仅保留勾选类别
+        var bars = { cls: new Int8Array(dbBars.cls), orient: dbBars.orient, w: dbBars.w, h: dbBars.h };
+        for (var i = 0; i < bars.cls.length; i++) { if (bars.cls[i] && !clsSel[bars.cls[i]]) bars.cls[i] = 0; }
+        var res = healImage(src, bars, (dbBrushOn ? dbMaskImg : null));
+        dbResultCanvas = res;
+      } else {
+        dbResultCanvas = src;
+      }
+      $('#dbAfter').src = dbResultCanvas.toDataURL('image/png'); $('#dbAfter').style.display = 'block';
       $('#dbDownload').style.display = 'inline-block';
-      $('#dbStatus').textContent = '完成（' + res.width + '×' + res.height + '）';
+      $('#dbStatus').textContent = '完成（' + dbResultCanvas.width + '×' + dbResultCanvas.height + '）';
     }, 30);
   };
   $('#dbDownload').onclick = function () {
@@ -770,13 +1110,13 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       var out = dbRawPath.replace(/(\.[a-z0-9]+)$/i, '_debanded$1');
       var ok = NB.saveBase64Image(out, dbResultCanvas.toDataURL('image/png'));
       toast(ok ? ('已写回：' + nameOf(out)) : '保存失败');
-      if (ok) renderComic(fmPath);
+      if (ok && activeProject && activeProject.type === 'deband') renderRail();
     } else {
       var a = document.createElement('a'); a.download = 'debanded.png'; a.href = dbResultCanvas.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove(); toast('已导出 debanded.png');
     }
   };
 
-  /* ===== FleshOut ===== */
+  /* ===== FleshOut + 本地模板管理 ===== */
   document.querySelectorAll('#flSeg button').forEach(function (b) {
     b.onclick = function () { document.querySelectorAll('#flSeg button').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active'); $('#flLocal').classList.toggle('hidden', b.dataset.mode !== 'local'); $('#flApi').classList.toggle('hidden', b.dataset.mode !== 'api'); };
   });
@@ -810,6 +1150,69 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       '<h4>👥 角色表（' + Object.keys(speakers).length + '，按出现次数）</h4>' + (spHtml || '（未识别到「角色：台词」格式）') +
       '<h4>📊 段落数</h4><div>约 ' + Math.max(1, sceneCount) + ' 段</div>';
   }
+  // 模板管理
+  var TPL_KEY = 'flesh_templates_v1';
+  var templates = [];
+  var editingTpl = null;
+  function loadTemplates() {
+    try { templates = JSON.parse(localStorage.getItem(TPL_KEY) || '[]'); } catch (e) { templates = []; }
+    if (NB && activeProject && activeProject.folder) {
+      var tj = NB.readText(activeProject.folder + '/flesh_templates.json');
+      if (tj) { try { var f = JSON.parse(tj); if (Array.isArray(f)) templates = f; } catch (e2) {} }
+    }
+  }
+  function saveTemplates() {
+    localStorage.setItem(TPL_KEY, JSON.stringify(templates));
+    if (NB && activeProject && activeProject.folder) {
+      NB.saveText(activeProject.folder + '/flesh_templates.json', JSON.stringify(templates, null, 2));
+    }
+  }
+  function renderTemplates() {
+    var box = $('#tplList'); box.innerHTML = '';
+    if (!templates.length) { box.innerHTML = '<div class="fm-note">还没有模板。点「+ 新建」添加常用改写模板。</div>'; return; }
+    templates.forEach(function (t, idx) {
+      var row = document.createElement('div'); row.className = 'tpl-row';
+      var ruleCount = (t.rules || []).length;
+      row.innerHTML = '<div class="tn">' + esc(t.name) + '</div>' +
+        '<div class="td">' + (t.sys ? '系统：' + esc(t.sys.slice(0, 22)) + (t.sys.length > 22 ? '…' : '') : '仅本地规则') + ' · 规则 ' + ruleCount + ' 条</div>' +
+        '<div class="ta"><button class="apply primary" data-i="' + idx + '">应用</button>' +
+        '<button data-e="' + idx + '">编辑</button><button data-d="' + idx + '">删除</button></div>';
+      row.querySelector('[data-i]').onclick = function () { applyTemplate(idx); };
+      row.querySelector('[data-e]').onclick = function () { editTemplate(idx); };
+      row.querySelector('[data-d]').onclick = function () { templates.splice(idx, 1); saveTemplates(); renderTemplates(); toast('已删除模板'); };
+      box.appendChild(row);
+    });
+  }
+  function applyTemplate(idx) {
+    var t = templates[idx]; if (!t) return;
+    editingTpl = idx;
+    var apiActive = document.querySelector('#flSeg button[data-mode=api]').classList.contains('active');
+    if (apiActive) {
+      $('#flSys').value = t.sys || ''; $('#flInstr').value = t.instr || '';
+      toast('已应用模板到 API 模式（系统指令/改写要求已填入）');
+    } else {
+      toast('已选模板「' + t.name + '」，点「按模板改写」执行本地规则');
+    }
+  }
+  function editTemplate(idx) {
+    editingTpl = idx; var t = templates[idx] || { name: '', sys: '', instr: '', rules: [] };
+    $('#tplName').value = t.name || '';
+    $('#tplSys').value = t.sys || '';
+    $('#tplInstr').value = t.instr || '';
+    $('#tplRules').value = (t.rules || []).map(function (r) { return r.find + '|' + r.repl; }).join('\n');
+    $('#tplEdit').classList.remove('hidden');
+  }
+  $('#tplAdd').onclick = function () { editingTpl = null; $('#tplName').value = ''; $('#tplSys').value = ''; $('#tplInstr').value = ''; $('#tplRules').value = ''; $('#tplEdit').classList.remove('hidden'); };
+  $('#tplCancel').onclick = function () { $('#tplEdit').classList.add('hidden'); };
+  $('#tplSave').onclick = function () {
+    var name = $('#tplName').value.trim(); if (!name) return toast('请填模板名');
+    var rules = $('#tplRules').value.split('\n').map(function (l) { return l.trim(); }).filter(Boolean).map(function (l) {
+      var i = l.indexOf('|'); if (i < 0) return { find: l, repl: '' }; return { find: l.slice(0, i), repl: l.slice(i + 1) };
+    });
+    var t = { name: name, sys: $('#tplSys').value, instr: $('#tplInstr').value, rules: rules };
+    if (editingTpl !== null && templates[editingTpl]) templates[editingTpl] = t; else templates.push(t);
+    saveTemplates(); renderTemplates(); $('#tplEdit').classList.add('hidden'); toast('模板已保存');
+  };
   $('#flOutline').onclick = function () { var t = $('#flInput').value; if (!t.trim()) return toast('先粘贴或导入正文'); $('#flOutlineOut').innerHTML = buildOutline(t); };
   $('#flFmt').onclick = function () {
     var t = $('#flInput').value; if (!t.trim()) return toast('先粘贴或导入正文');
@@ -822,6 +1225,16 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     $('#flInput').value = out;
     $('#flFmtOut').textContent = '已统一对白格式（角色：台词，全角冒号）。';
     toast('已格式化对白');
+  };
+  $('#flTplRewrite').onclick = function () {
+    if (editingTpl === null && !templates.length) return toast('先应用/新建一个模板');
+    var idx = (editingTpl !== null && templates[editingTpl]) ? editingTpl : 0;
+    var t = templates[idx]; if (!t || !t.rules || !t.rules.length) return toast('该模板没有本地规则');
+    var txt = $('#flInput').value;
+    t.rules.forEach(function (r) { try { txt = txt.split(r.find).join(r.repl); } catch (e) {} });
+    $('#flInput').value = txt;
+    $('#flFmtOut').textContent = '已按模板「' + t.name + '」规则改写（' + t.rules.length + ' 条）。';
+    toast('已按模板改写');
   };
   $('#flExport').onclick = function () { if (!$('#flInput').value.trim()) return toast('没有内容'); download('fleshout.txt', $('#flInput').value); toast('已导出 txt'); };
   $('#flSend').onclick = function () {
@@ -845,9 +1258,12 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   /* ===== 原生模式启动 ===== */
   if (NB) {
     $('#dbPick').style.display = 'none';
+    loadTemplates(); renderTemplates();
     renderComic(NB_PATH);
     fmRender();
     window.onNativePermissionResult = function () { renderComic(NB_PATH); fmRender(); };
+  } else {
+    loadTemplates(); renderTemplates();
   }
 })();
 </script>
