@@ -673,7 +673,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       var idx = ap ? ap.index : browseIndex;
       if (list && list.length > 1) {
         return {
-          items: list.map(function (f, i) { return { name: f.name, thumb: NB ? NB.readImageBase64(f.path, 160) : '', onSelect: function () { if (ap) ap.index = i; else browseIndex = i; openEditor(null, f.name, true, f.path); } }; }),
+          items: list.map(function (f, i) { return { name: f.name, path: f.path, onSelect: function () { if (ap) ap.index = i; else browseIndex = i; openEditor(null, f.name, true, f.path); } }; }),
           index: idx,
           prev: function () { if (idx > 0) { idx--; if (ap) ap.index = idx; else browseIndex = idx; var f = list[idx]; openEditor(null, f.name, true, f.path); } },
           next: function () { if (idx < list.length - 1) { idx++; if (ap) ap.index = idx; else browseIndex = idx; var f = list[idx]; openEditor(null, f.name, true, f.path); } },
@@ -683,7 +683,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     }
     if (currentPane === 'deband' && activeProject && activeProject.type === 'deband' && activeProject.files.length > 1) {
       return {
-        items: activeProject.files.map(function (f, i) { return { name: f.name, thumb: NB ? NB.readImageBase64(f.path, 160) : '', onSelect: function () { activeProject.index = i; loadDeband(f.path); } }; }),
+        items: activeProject.files.map(function (f, i) { return { name: f.name, path: f.path, onSelect: function () { activeProject.index = i; loadDeband(f.path); } }; }),
         index: activeProject.index,
         prev: function () { if (activeProject.index > 0) { activeProject.index--; loadDeband(activeProject.files[activeProject.index].path); } },
         next: function () { if (activeProject.index < activeProject.files.length - 1) { activeProject.index++; loadDeband(activeProject.files[activeProject.index].path); } },
@@ -692,7 +692,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     }
     if (currentPane === 'director' && dirPages.length > 1) {
       return {
-        items: dirPages.map(function (pg, i) { return { name: (pg.path ? nameOf(pg.path) : ('第' + (i + 1) + '页')), thumb: pageImage(i, 160), onSelect: function () { gotoPage(i); } }; }),
+        items: dirPages.map(function (pg, i) { return { name: (pg.path ? nameOf(pg.path) : ('第' + (i + 1) + '页')), path: pagePath(i), onSelect: function () { gotoPage(i); } }; }),
         index: dirCurPage,
         prev: function () { if (dirCurPage > 0) { gotoPage(dirCurPage - 1); } },
         next: function () { if (dirCurPage < dirPages.length - 1) { gotoPage(dirCurPage + 1); } },
@@ -713,12 +713,27 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   function renderRail() {
     var ctx = railContext(); if (!ctx) return;
     var g = $('#railGrid'); g.innerHTML = '';
+    var cells = [];
     ctx.items.forEach(function (it, i) {
       var cell = document.createElement('div'); cell.className = 'rail-cell' + (i === ctx.index ? ' active' : '');
-      cell.innerHTML = '<img src="' + (it.thumb || '') + '" onerror="this.style.visibility=\'hidden\'"><div class="rc">' + esc(it.name) + '</div>';
+      cell.innerHTML = '<img src="" onerror="this.style.visibility=\'hidden\'"><div class="rc">' + esc(it.name) + '</div>';
+      cell._path = it.path || '';
       cell.onclick = function () { it.onSelect(); updateRailActive(); };
       g.appendChild(cell);
+      cells.push(cell);
     });
+    // 缩略图分批懒加载，避免几百张图同步解码卡死主线程
+    var ri = 0;
+    function railLazy() {
+      if (!NB) return;
+      var end = Math.min(ri + 8, cells.length);
+      for (; ri < end; ri++) {
+        var c = cells[ri];
+        if (c._path) { var s = NB.readImageBase64(c._path, 160); var im = c.querySelector('img'); if (s && im) im.src = s; }
+      }
+      if (ri < cells.length) setTimeout(railLazy, 25);
+    }
+    if (cells.length) setTimeout(railLazy, 25);
   }
   $('#railPrev').onclick = function () { var c = railContext(); if (c) { c.prev(); renderRail(); } };
   $('#railNext').onclick = function () { var c = railContext(); if (c) { c.next(); renderRail(); } };
@@ -941,14 +956,18 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     toast('已载入 ' + pages.length + ' 页 / ' + n + ' 句');
     gotoPage(0); renderDirLines(); updateRailVisibility();
   }
-  function pageImage(pi, size) {
-    if (!NB) return '';
+  function pagePath(pi) {
     var p = dirPages[pi]; if (!p) return '';
     var base = p.path ? nameOf(p.path) : null, cand = null;
     if (base) cand = dirImages.find(function (it) { return nameOf(it.path) === base; });
     if (!cand && dirImages[pi]) cand = dirImages[pi];
     if (!cand) return '';
-    return NB.readImageBase64(cand.path, size || 1200);
+    return cand.path;
+  }
+  function pageImage(pi, size) {
+    if (!NB) return '';
+    var path = pagePath(pi); if (!path) return '';
+    return NB.readImageBase64(path, size || 1200);
   }
   function gotoPage(i) {
     if (i < 0 || i >= dirPages.length) return;
