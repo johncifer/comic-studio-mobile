@@ -485,11 +485,13 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       saveBase64Image: function (p, b) { return ok ? ComicBridge.saveBase64Image(enc(p), b) : false; },
       installApk: function (p) { if (ok) ComicBridge.installApk(enc(p)); },
       folderDiag: function (p) { return ok ? ComicBridge.folderDiag(enc(p)) : ''; },
+      requestAllFiles: function () { if (ok) ComicBridge.requestAllFiles(); },
       toast: function (m) { if (ok) ComicBridge.toast(m); else alert(m); }
     };
   })();
   var NB = Native.available ? Native : null;
   var NB_PATH = NB ? (Native.defaultFolder() || '/storage/emulated/0/漫画镜头工坊') : '';
+  window.onNativePermissionResult = function () { toast('已从授权页返回，请重新打开文件管理'); if (NB) fmRender(); };
 
   /* ===== 面板切换 ===== */
   var currentPane = 'comic';
@@ -528,15 +530,31 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     if (par && par !== fmPath) box.appendChild(fmRow('📂', '.. 上级目录', function () { fmNav(par); }));
     if (!items.length && !fmAccessError) {
       var dInfo = '空文件夹（此目录确实没有文件）';
+      var warn = false;
       try {
         var d = JSON.parse((NB ? NB.folderDiag(fmPath) : '') || '{}');
         if (d.err) dInfo = 'folderDiag 错误：' + esc(d.err);
-        else dInfo = '空文件夹诊断<br>exists=' + d.exists + ' · isDir=' + d.isDir + ' · canRead=' + d.canRead + ' · listLen=' + (d.listLen === -1 ? 'null(无权限/IO错)' : d.listLen);
-        if (d.sample && d.sample.length) dInfo += '<br>前若干文件：' + esc(d.sample.join('、'));
+        else {
+          dInfo = '空文件夹诊断<br>exists=' + d.exists + ' · isDir=' + d.isDir + ' · canRead=' + d.canRead + ' · listLen=' + (d.listLen === -1 ? 'null(无权限/IO错)' : d.listLen) + ' · 所有文件访问=' + d.allFilesAccess;
+          if (d.allFilesAccess === false) {
+            warn = true;
+            dInfo += '<br><b>未授予「所有文件访问」权限！</b>点下方「去授权」按钮，在设置里开启「所有文件访问」（注意：不是「文件和媒体」），再重开本页。';
+          } else if (d.listLen === 0 && d.exists) {
+            dInfo += '<br>目录真实为空，或此路径与手机文件管理器并非同一目录。';
+          }
+          if (d.sample && d.sample.length) dInfo += '<br>前若干文件：' + esc(d.sample.join('、'));
+        }
       } catch (e) { dInfo = '空文件夹（此目录确实没有文件）'; }
-      var drow = document.createElement('div'); drow.className = 'fm-row';
+      var drow = document.createElement('div'); drow.className = 'fm-row' + (warn ? ' fm-warn' : '');
       drow.innerHTML = '<span class="fm-ic"></span><span>' + dInfo + '</span>';
       box.appendChild(drow);
+      if (warn) {
+        var gbtn = document.createElement('button');
+        gbtn.className = 'func-btn'; gbtn.style.marginTop = '8px';
+        gbtn.textContent = '去授权「所有文件访问」';
+        gbtn.onclick = function () { if (NB) NB.requestAllFiles(); };
+        box.appendChild(gbtn);
+      }
     }
     else items.forEach(function (it) {
       var ic = it.isDir ? '📁' : (it.isApk ? '📦' : (it.isImage ? '🖼' : '📄'));

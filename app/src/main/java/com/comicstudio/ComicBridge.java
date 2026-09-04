@@ -1,9 +1,13 @@
 package com.comicstudio;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
+import android.provider.Settings;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
@@ -193,6 +197,11 @@ public class ComicBridge {
             o.put("isDir", dir.isDirectory());
             o.put("canRead", dir.canRead());
             o.put("canWrite", dir.canWrite());
+            boolean allFiles = true;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                try { allFiles = Environment.isExternalStorageManager(); } catch (Exception ignored) { allFiles = false; }
+            }
+            o.put("allFilesAccess", allFiles);
             File[] fs = dir.listFiles();
             o.put("listLen", fs == null ? -1 : fs.length);
             JSONArray names = new JSONArray();
@@ -217,5 +226,17 @@ public class ComicBridge {
     @JavascriptInterface
     public void toast(String msg) {
         activity.runOnUiThread(() -> Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show());
+    }
+
+    /** 跳转到「所有文件访问」授权设置页（Android 11+ 必需，否则自定义目录 listFiles 被 framework 过滤成空） */
+    @JavascriptInterface
+    public void requestAllFiles() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
+            try {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                intent.setData(Uri.parse("package:" + activity.getPackageName()));
+                activity.startActivity(intent);
+            } catch (Exception ignored) { }
+        }
     }
 }
