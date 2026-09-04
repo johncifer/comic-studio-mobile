@@ -91,21 +91,65 @@ textarea.inp{width:100%;background:var(--panel);color:var(--txt);border:1px soli
 .thumb.dir{display:flex;align-items:center;justify-content:center;font-size:38px;background:#1d1d2b;color:var(--sub);}
 .cap{font-size:11px;padding:7px 8px;color:#cfcfe0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-/* director */
+/* director — 复刻电脑端：中间预览框 + 下方台词行（排除配音） */
 .dir-proj{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--panel);
   border:1px solid var(--line);margin-bottom:10px;font-size:13px;}
 .dir-proj .pn{font-weight:700;}
 .dir-proj .pc{color:var(--sub);margin-left:auto;font-size:12px;}
-.dpage{background:var(--panel);border:1px solid var(--line);border-radius:13px;margin:10px 0;overflow:hidden;}
-.dpage .ph{display:flex;gap:10px;padding:9px 10px;align-items:center;background:rgba(255,255,255,.03);}
-.dpage .pthumb{width:54px;height:54px;object-fit:cover;border-radius:8px;background:#000;flex:0 0 54px;}
-.dpage .pl{font-size:13px;font-weight:700;}
-.dpage .pc{font-size:11px;color:var(--sub);}
-.dline{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-top:1px solid rgba(255,255,255,.05);}
-.dline input[type=checkbox]{margin-top:9px;width:18px;height:18px;accent-color:var(--accent);flex:0 0 18px;}
-.dline textarea{flex:1;background:transparent;border:none;color:var(--txt);font-size:13.5px;line-height:1.5;
-  resize:none;min-height:20px;}
-.dline.done textarea{text-decoration:line-through;color:var(--sub);}
+.dir-page-sel-row{display:flex;gap:6px;align-items:center;margin-bottom:8px;}
+.dir-page-sel-row .btn{flex:0 0 auto;}
+.dir-page-sel{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+  border-radius:7px;padding:6px;font-size:12px;}
+.dir-imgwrap{position:relative;background:#0c0e12;border:1px solid var(--line);border-radius:10px;padding:8px;
+  display:flex;align-items:center;justify-content:center;min-height:200px;}
+.dir-imgbox{position:relative;display:inline-block;line-height:0;max-width:100%;border:1px solid var(--line);border-radius:6px;}
+.dir-imgbox img{display:block;max-width:100%;width:100%;height:auto;background:#000;}
+.dir-overlay{position:absolute;inset:0;pointer-events:none;}
+.ocr-box{position:absolute;border:1.5px solid rgba(255,180,60,.9);background:rgba(255,180,60,.13);
+  border-radius:3px;pointer-events:auto;cursor:pointer;font-size:0;transition:background .12s,border-color .12s;}
+.ocr-box:hover,.ocr-box.hl{background:rgba(255,120,40,.32);border-color:#ff9a3c;}
+.dir-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;color:var(--sub);font-size:13px;line-height:1.9;pointer-events:none;padding:16px;}
+.dir-empty.hide{display:none;}
+.dir-empty .muted{font-size:11px;color:var(--sub);}
+.dir-editor-hint{font-size:11px;color:var(--sub);margin-top:6px;min-height:14px;}
+.dir-strip{display:flex;gap:8px;overflow-x:auto;padding:8px 2px;margin:8px 0;}
+.dir-strip .si{flex:0 0 auto;width:62px;height:82px;border:1px solid var(--line);border-radius:8px;overflow:hidden;
+  position:relative;background:#000;cursor:pointer;}
+.dir-strip .si img{width:100%;height:100%;object-fit:cover;}
+.dir-strip .si.cur{border-color:var(--accent);box-shadow:0 0 0 2px rgba(120,170,255,.45);}
+.dir-strip .si .num{position:absolute;left:2px;top:2px;font-size:10px;background:rgba(0,0,0,.6);color:#fff;border-radius:5px;padding:0 4px;}
+.recog-lines{margin-top:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;}
+.rl-head{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px;}
+.rl-head .section-title{margin:0;flex:1 1 auto;min-width:120px;}
+.rl-head .btn{font-size:11px;padding:5px 8px;}
+.dir-lines{display:flex;flex-direction:column;gap:4px;}
+.dir-line{display:flex;flex-direction:column;gap:5px;padding:7px 8px;border:1px solid var(--line);border-radius:9px;
+  background:var(--panel2);font-size:13px;}
+.dir-line.checked{border-color:var(--accent2);background:rgba(120,170,255,.10);}
+.ln-ctrl{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.lnpick{width:18px;height:18px;flex:0 0 auto;accent-color:var(--accent2);}
+.lnno{width:22px;text-align:center;font-weight:700;color:var(--accent);flex:0 0 auto;}
+.lnact{display:flex;gap:3px;margin-left:auto;flex:0 0 auto;}
+.lnact .act{padding:2px 7px;font-size:11px;line-height:1.4;min-width:24px;background:var(--panel);border:1px solid var(--line);
+  color:var(--txt);border-radius:6px;}
+.lnact .act.del{color:#ff8a9a;border-color:#5a2230;}
+.ln-box{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.lntext{flex:1;min-width:120px;white-space:pre-wrap;word-break:break-word;line-height:1.5;}
+.lntext.editing{background:var(--panel);border:1px solid var(--accent2);border-radius:6px;padding:3px 6px;outline:none;
+  width:100%;font-family:inherit;font-size:13px;color:var(--txt);}
+.lnpage{font-size:10px;color:var(--sub);border:1px solid var(--line);border-radius:8px;padding:0 6px;flex:0 0 auto;}
+.lnemo{font-size:10px;padding:1px 7px;border-radius:10px;background:#2a313d;color:var(--sub);flex:0 0 auto;}
+.lnemo.normal{background:#333;color:#ccc;}
+.lnemo.happy{background:#234a30;color:#7be0a0;}
+.lnemo.angry{background:#5a2230;color:#ff8a9a;}
+.lnemo.sad{background:#23304a;color:#8ab4ff;}
+.lnemo.excited{background:#4a3a20;color:#ffcf7a;}
+.lnemo.gentle{background:#3a2a4a;color:#c9a3ff;}
+.lnemo.shout{background:#5a2a2a;color:#ff9a7a;}
+.lnemo.serious{background:#2c3340;color:#aab4c8;}
+.lnemo.moan{background:#3a2a3a;color:#e0a3d0;}
+.lnemo-sel{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:2px 4px;font-size:11px;}
 
 /* deband */
 .db-compare{display:flex;gap:8px;margin:12px 0;}
@@ -229,10 +273,8 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   <input id="imgInput" type="file" accept="image/*" multiple hidden>
 </section>
 
-<!-- ===== 导演台 ===== -->
+<!-- ===== 导演台（复刻电脑端：中间预览框 + 下方台词行，排除配音） ===== -->
 <section id="paneDirector" class="pane">
-  <div class="pane-head">🎙 导演台 · 台词核对</div>
-  <p class="hint">参考电脑端：载入项目（json）→ 按页看台词、逐句核对、合并导出。<br>点左上角 ☰ → 文件管理，进入含 json 的目录后「作为项目打开」，或选单个 .json 载入。</p>
   <div class="dir-proj hidden" id="dirProj">
     <span>📄</span><span class="pn" id="dirProjName"></span><span class="pc" id="dirProjCount"></span>
   </div>
@@ -246,7 +288,39 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     <button class="btn small" id="dirExportTxt">导出台词txt</button>
     <button class="btn small" id="dirWriteBack">写回文件夹</button>
   </div>
-  <div id="dirPages"></div>
+
+  <!-- 页面导航 -->
+  <div class="dir-page-sel-row">
+    <button class="btn sm" id="dirPrevPage">上一页</button>
+    <select id="dirPageSel" class="dir-page-sel"></select>
+    <button class="btn sm" id="dirNextPage">下一页</button>
+  </div>
+
+  <!-- 中间：预览框（空时显示占位，说明是预览图位置） -->
+  <div class="dir-imgwrap" id="dirImgWrap">
+    <div class="dir-imgbox" id="dirImgBox">
+      <img id="dirImg" alt="漫画预览" />
+      <div class="dir-overlay" id="dirOverlay"></div>
+    </div>
+    <div class="dir-empty" id="dirEditorEmpty">预览图位置<br><span class="muted">（载入项目后用「上一页/下一页」或下方缩略图切页即在此预览；点图上黄框可定位台词）</span></div>
+  </div>
+  <div class="dir-editor-hint muted" id="dirEditorHint"></div>
+
+  <!-- 图片（页）管理窗口：横向缩略图 -->
+  <div class="dir-strip" id="dirStrip"></div>
+
+  <!-- 下方：台词区 -->
+  <div class="recog-lines">
+    <div class="rl-head">
+      <div class="section-title">台词文本 <span class="muted" id="linesScopeHint">显示全部</span></div>
+      <button class="btn" id="btnLinesPage">本页台词</button>
+      <button class="btn" id="btnLinesAll">全部台词</button>
+      <button class="btn" id="dirMerge">合并相邻</button>
+      <button class="btn" id="dirAutoEmo">自动语气</button>
+      <button class="btn" id="dirCleanTts">清理文本</button>
+    </div>
+    <div id="dirLines" class="dir-lines"></div>
+  </div>
   <input id="dirFile" type="file" accept=".txt,.json,text/plain,application/json" hidden>
 </section>
 
@@ -514,7 +588,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     if (activeProject === p) activeProject = null;
     if (p.type === 'comic') { $('#grid').innerHTML = ''; $('#comicHint').textContent = '项目已关闭。点 ☰ → 文件管理重新打开文件夹。'; }
     else if (p.type === 'deband') { $('#dbBefore').removeAttribute('src'); $('#dbAfter').style.display = 'none'; dbImg = null; }
-    else if (p.type === 'director') { $('#dirPages').innerHTML = ''; $('#dirProj').classList.add('hidden'); }
+    else if (p.type === 'director') { $('#dirLines').innerHTML = ''; $('#dirStrip').innerHTML = ''; $('#dirOverlay').innerHTML = ''; var im = $('#dirImg'); if (im) im.removeAttribute('src'); $('#dirEditorEmpty').classList.remove('hide'); $('#dirProj').classList.add('hidden'); }
     else if (p.type === 'flesh') { $('#flInput').value = ''; }
     renderProjects(); updateRailVisibility();
   }
@@ -575,10 +649,10 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     }
     if (currentPane === 'director' && dirPages.length > 1) {
       return {
-        items: dirPages.map(function (pg, i) { return { name: (pg.path ? nameOf(pg.path) : ('第' + (i + 1) + '页')), thumb: pageThumb(dirPath, i), onSelect: function () { scrollToPage(i); } }; }),
+        items: dirPages.map(function (pg, i) { return { name: (pg.path ? nameOf(pg.path) : ('第' + (i + 1) + '页')), thumb: pageImage(i, 160), onSelect: function () { gotoPage(i); } }; }),
         index: dirCurPage,
-        prev: function () { if (dirCurPage > 0) { dirCurPage--; scrollToPage(dirCurPage); } },
-        next: function () { if (dirCurPage < dirPages.length - 1) { dirCurPage++; scrollToPage(dirCurPage); } },
+        prev: function () { if (dirCurPage > 0) { gotoPage(dirCurPage - 1); } },
+        next: function () { if (dirCurPage < dirPages.length - 1) { gotoPage(dirCurPage + 1); } },
         onMove: null
       };
     }
@@ -769,8 +843,10 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     }
   }
 
-  /* ===== 导演台（参考电脑端） ===== */
+  /* ===== 导演台（复刻电脑端：中间预览框 + 下方台词行，排除配音） ===== */
   var dirObj = null, dirPath = null, dirPages = [], dirCurPage = 0;
+  var dirProjDir = null, dirImages = [], dirLinesScope = 'all';
+  var EMOTIONS = ['normal', 'happy', 'angry', 'sad', 'excited', 'gentle', 'shout', 'serious', 'moan'];
   function getPages(o) {
     if (!o || typeof o !== 'object') return [];
     if (o.director && o.director.pages) return o.director.pages;
@@ -780,64 +856,179 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     return [];
   }
   function lineText(l) { if (typeof l === 'string') return l; if (l && typeof l === 'object') return l.text || ''; return ''; }
+  function parseBBox(s) { if (typeof s !== 'string') return null; var m = s.match(/[\d.]+/g); if (!m || m.length < 4) return null; return m.slice(0, 4).map(Number); }
+  function loadDirectorFile(path) { loadDirectorFileFromText(NB.readText(path), path); }
   function loadDirectorFileFromText(txt, path) {
     var obj; try { obj = JSON.parse(txt); } catch (e) { toast('JSON 解析失败'); return; }
-    dirObj = obj; dirPath = path || null;
     var pages = getPages(obj);
-    dirPages = pages.map(function (p) { return p; });
-    dirCurPage = 0;
-    renderDirector();
-    var n = 0; pages.forEach(function (p) { n += (p.lines || []).length; });
+    pages.forEach(function (p, pi) {
+      if (!p.lines) p.lines = [];
+      p.lines.forEach(function (l, li) {
+        if (typeof l === 'string') { p.lines[li] = { text: l, emotion: 'normal', _id: 'L' + pi + '_' + li }; }
+        else { if (!l._id) l._id = 'L' + pi + '_' + li; if (!l.emotion) l.emotion = 'normal'; if (l.text === undefined) l.text = ''; }
+      });
+    });
+    dirObj = obj; dirPath = path || null;
+    dirProjDir = path ? parentOf(path) : null;
+    dirImages = (dirProjDir && NB) ? NB.listFolder(dirProjDir).filter(function (it) { return it.isImage; })
+      .sort(function (a, b) { return a.name.localeCompare(b.name); }) : [];
+    dirPages = pages; dirCurPage = 0; dirLinesScope = 'all';
+    var sel = $('#dirPageSel'); sel.innerHTML = '';
+    pages.forEach(function (p, i) { var o = document.createElement('option'); o.value = i; o.textContent = (p.path ? nameOf(p.path) : ('第' + (i + 1) + '页')); sel.appendChild(o); });
     $('#dirProj').classList.remove('hidden');
     $('#dirProjName').textContent = path ? nameOf(path) : '已粘贴文本';
+    var n = 0; pages.forEach(function (p) { n += (p.lines || []).length; });
     $('#dirProjCount').textContent = pages.length + ' 页 / ' + n + ' 句';
     toast('已载入 ' + pages.length + ' 页 / ' + n + ' 句');
-    updateRailVisibility();
+    gotoPage(0); renderDirLines(); updateRailVisibility();
   }
-  function loadDirectorFile(path) { loadDirectorFileFromText(NB.readText(path), path); }
-  function pageThumb(path, idx) {
+  function pageImage(pi, size) {
     if (!NB) return '';
-    var dir = path.substring(0, path.lastIndexOf('/'));
-    var imgs = NB.listFolder(dir).filter(function (it) { return it.isImage; })
-      .sort(function (a, b) { return a.name.localeCompare(b.name); });
-    return imgs[idx] ? NB.readImageBase64(imgs[idx].path, 500) : '';
+    var p = dirPages[pi]; if (!p) return '';
+    var base = p.path ? nameOf(p.path) : null, cand = null;
+    if (base) cand = dirImages.find(function (it) { return nameOf(it.path) === base; });
+    if (!cand && dirImages[pi]) cand = dirImages[pi];
+    if (!cand) return '';
+    return NB.readImageBase64(cand.path, size || 1200);
   }
-  function renderDirector() {
-    var box = $('#dirPages'); box.innerHTML = '';
-    var checked = 0;
-    dirPages.forEach(function (page, pi) {
-      var lines = page.lines || [];
-      var card = document.createElement('div'); card.className = 'dpage'; card.id = 'dpage' + pi;
-      var thumb = pageThumb(dirPath, pi);
-      var label = (page.path ? nameOf(page.path) : ('第 ' + (pi + 1) + ' 页'));
-      var ph = '<div class="ph"><img class="pthumb" src="' + (thumb || '') + '" onerror="this.style.visibility=\'hidden\'">' +
-        '<div><div class="pl">' + esc(label) + '</div><div class="pc">' + lines.length + ' 句</div></div></div>';
-      card.innerHTML = ph;
-      lines.forEach(function (lineObj, li) {
-        var text = lineText(lineObj);
-        var row = document.createElement('div'); row.className = 'dline';
-        var cb = document.createElement('input'); cb.type = 'checkbox';
-        cb.onchange = function () { row.classList.toggle('done', cb.checked); if (cb.checked) checked++; else checked--; updCount(checked); };
-        var ta = document.createElement('textarea'); ta.value = text; ta.rows = 1;
-        ta.oninput = function () {
-          if (lineObj && typeof lineObj === 'object') lineObj.text = ta.value;
-          else page.lines[li] = ta.value;
-          autoGrow(ta);
-        };
-        row.appendChild(cb); row.appendChild(ta); card.appendChild(row); autoGrow(ta);
-      });
-      box.appendChild(card);
-    });
-    updCount(0);
-  }
-  function scrollToPage(i) {
+  function gotoPage(i) {
+    if (i < 0 || i >= dirPages.length) return;
     dirCurPage = i;
-    var el = document.getElementById('dpage' + i);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    updateRailActive();
+    var img = $('#dirImg');
+    var src = pageImage(i, 1200);
+    if (src) { img.src = src; img.onload = function () { renderOverlay(i); }; $('#dirEditorEmpty').classList.add('hide'); }
+    else { img.removeAttribute('src'); $('#dirEditorEmpty').classList.remove('hide'); $('#dirOverlay').innerHTML = ''; }
+    $('#dirPageSel').value = i;
+    renderStrip(); updateScopeHint(); updateRailActive();
   }
+  function renderOverlay(i) {
+    var ov = $('#dirOverlay'); ov.innerHTML = '';
+    var img = $('#dirImg'), W = img.naturalWidth, H = img.naturalHeight;
+    if (!W || !H) return;
+    (dirPages[i].lines || []).forEach(function (l) {
+      if (!l.bbox) return; var b = parseBBox(l.bbox); if (!b) return;
+      var box = document.createElement('div'); box.className = 'ocr-box'; box.dataset.lid = l._id;
+      box.style.left = (b[0] / W * 100) + '%'; box.style.top = (b[1] / H * 100) + '%';
+      box.style.width = (b[2] / W * 100) + '%'; box.style.height = (b[3] / H * 100) + '%';
+      box.onclick = function () { highlightLine(l._id); };
+      ov.appendChild(box);
+    });
+  }
+  function highlightLine(lid) {
+    var r = document.getElementById('line-' + lid); if (r) { r.scrollIntoView({ behavior: 'smooth', block: 'center' }); r.classList.add('checked'); }
+  }
+  function renderStrip() {
+    var s = $('#dirStrip'); s.innerHTML = '';
+    if (!dirPages.length) return;
+    var start = Math.max(0, dirCurPage - 15), end = Math.min(dirPages.length, start + 30);
+    for (var i = start; i < end; i++) {
+      (function (idx) {
+        var c = document.createElement('div'); c.className = 'si' + (idx === dirCurPage ? ' cur' : '');
+        c.innerHTML = '<span class="num">' + (idx + 1) + '</span><img src="' + (pageImage(idx, 200) || '') + '" onerror="this.style.visibility=\'hidden\'">';
+        c.onclick = function () { gotoPage(idx); };
+        s.appendChild(c);
+      })(i);
+    }
+  }
+  function flatLines() { var f = []; dirPages.forEach(function (p, pi) { (p.lines || []).forEach(function (l) { f.push({ l: l, pi: pi }); }); }); return f; }
+  function buildLineRow(l, pi, flat) {
+    var row = document.createElement('div'); row.className = 'dir-line'; row.id = 'line-' + l._id;
+    var idx = flat.findIndex(function (x) { return x.l._id === l._id; }), g = idx + 1;
+    var atTop = idx <= 0, atBot = idx >= flat.length - 1;
+    var emoOpts = EMOTIONS.map(function (e) { return '<option value="' + e + '"' + (e === l.emotion ? ' selected' : '') + '>' + e + '</option>'; }).join('');
+    row.innerHTML =
+      '<div class="ln-ctrl">' +
+      '<input type="checkbox" class="lnpick" title="勾选后可合并相邻">' +
+      '<span class="lnno">' + g + '</span>' +
+      '<span class="lnact">' +
+      '<button class="act" data-act="up"' + (atTop ? ' disabled' : '') + '>↑</button>' +
+      '<button class="act" data-act="down"' + (atBot ? ' disabled' : '') + '>↓</button>' +
+      '<button class="act" data-act="edit">✎</button>' +
+      '<select class="lnemo-sel" title="语气">' + emoOpts + '</select>' +
+      '<button class="act del" data-act="del">🗑</button>' +
+      '</span></div>' +
+      '<div class="ln-box"><span class="lntext">' + esc(l.text) + '</span>' +
+      '<span class="lnpage">P' + (pi + 1) + '</span>' +
+      '<span class="lnemo ' + l.emotion + '">' + esc(l.emotion) + '</span></div>';
+    var pick = row.querySelector('.lnpick');
+    pick.addEventListener('change', function () { row.classList.toggle('checked', pick.checked); updCount(); });
+    row.querySelector('.lnemo-sel').addEventListener('change', function (e) { l.emotion = e.target.value; var em = row.querySelector('.lnemo'); em.textContent = e.target.value; em.className = 'lnemo ' + e.target.value; });
+    row.querySelector('[data-act=up]').addEventListener('click', function () { moveLine(l._id, -1); });
+    row.querySelector('[data-act=down]').addEventListener('click', function () { moveLine(l._id, 1); });
+    row.querySelector('[data-act=edit]').addEventListener('click', function () { editLine(l, row); });
+    row.querySelector('[data-act=del]').addEventListener('click', function () { deleteLine(l); });
+    row.addEventListener('mouseenter', function () { if (pi === dirCurPage) document.querySelectorAll('.ocr-box').forEach(function (b) { b.classList.toggle('hl', b.dataset.lid === l._id); }); });
+    row.addEventListener('mouseleave', function () { document.querySelectorAll('.ocr-box.hl').forEach(function (b) { if (b.dataset.lid === l._id) b.classList.remove('hl'); }); });
+    return row;
+  }
+  function renderDirLines() {
+    var box = $('#dirLines'); box.innerHTML = '';
+    var flat = flatLines();
+    var scopePage = (dirLinesScope === 'page') ? dirPages[dirCurPage] : null;
+    dirPages.forEach(function (p, pi) {
+      if (scopePage && p !== scopePage) return;
+      (p.lines || []).forEach(function (l) { box.appendChild(buildLineRow(l, pi, flat)); });
+    });
+    updCount();
+  }
+  function moveLine(lid, d) {
+    for (var pi = 0; pi < dirPages.length; pi++) {
+      var lines = dirPages[pi].lines || [], k = lines.findIndex(function (l) { return l._id === lid; }); if (k < 0) continue;
+      var j = k + d; if (j < 0 || j >= lines.length) return;
+      var t = lines[k]; lines[k] = lines[j]; lines[j] = t; break;
+    }
+    renderDirLines();
+  }
+  function deleteLine(l) {
+    for (var pi = 0; pi < dirPages.length; pi++) {
+      var lines = dirPages[pi].lines || [], k = lines.findIndex(function (x) { return x._id === l._id; }); if (k >= 0) { lines.splice(k, 1); break; }
+    }
+    renderDirLines();
+  }
+  function editLine(l, row) {
+    var span = row.querySelector('.lntext'), boxEl = row.querySelector('.ln-box');
+    if (!span) return;
+    var ta = document.createElement('textarea'); ta.className = 'lntext editing'; ta.value = l.text; ta.rows = 2;
+    boxEl.replaceChild(ta, span); ta.focus();
+    function commit() { l.text = ta.value; renderDirLines(); }
+    ta.addEventListener('blur', commit);
+    ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); commit(); } });
+  }
+  function mergeSelected() {
+    var flat = flatLines(), checked = flat.filter(function (x) { var r = document.getElementById('line-' + x.l._id); return r && r.querySelector('.lnpick').checked; });
+    if (checked.length < 2) { toast('先勾选至少 2 行（相邻优先）'); return; }
+    var byPage = {};
+    checked.forEach(function (x) { (byPage[x.pi] = byPage[x.pi] || []).push(x); });
+    Object.keys(byPage).forEach(function (pi) {
+      var arr = byPage[pi].sort(function (a, b) { return flat.indexOf(a) - flat.indexOf(b); }), i = 0;
+      while (i < arr.length) {
+        var grp = [arr[i]], j = i + 1;
+        while (j < arr.length && flat.indexOf(arr[j]) === flat.indexOf(arr[j - 1]) + 1) { grp.push(arr[j]); j++; }
+        if (grp.length > 1) {
+          var lines = dirPages[pi].lines;
+          for (var m = grp.length - 1; m >= 1; m--) { var ix = lines.findIndex(function (l) { return l._id === grp[m].l._id; }); if (ix >= 0) lines.splice(ix, 1); }
+          var fi = lines.findIndex(function (l) { return l._id === grp[0].l._id; }); if (fi >= 0) lines[fi].text = grp.map(function (x) { return x.l.text; }).join('，');
+        }
+        i = j;
+      }
+    });
+    renderDirLines(); toast('已合并相邻勾选行');
+  }
+  function autoEmotion() {
+    var map = [['！', 'shout'], ['!', 'shout'], ['？', 'serious'], ['?', 'serious'], ['…', 'gentle'], ['笑', 'happy'], ['嬉', 'happy'], ['怒', 'angry'], ['泣', 'sad'], ['悲', 'sad'], ['涙', 'sad'], ['慌', 'excited']];
+    var n = 0;
+    dirPages.forEach(function (p) { (p.lines || []).forEach(function (l) { var t = l.text || '', e = 'normal'; for (var i = 0; i < map.length; i++) { if (t.indexOf(map[i][0]) >= 0) { e = map[i][1]; break; } } if (e !== l.emotion) { l.emotion = e; n++; } }); });
+    renderDirLines(); toast('已自动匹配语气：' + n + ' 句');
+  }
+  function cleanText() {
+    var re = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200B}\u{200C}\u{200D}\u{2060}]/gu, n = 0;
+    dirPages.forEach(function (p) { (p.lines || []).forEach(function (l) { var t = (l.text || '').replace(re, ''); if (t !== l.text) { l.text = t; n++; } }); });
+    renderDirLines(); toast('已清理无法识别文本：' + n + ' 句');
+  }
+  function setScope(s) { dirLinesScope = s; updateScopeHint(); renderDirLines(); }
+  function updateScopeHint() { $('#linesScopeHint').textContent = (dirLinesScope === 'page') ? ('本页 · P' + (dirCurPage + 1)) : '显示全部'; }
   function autoGrow(ta) { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 200) + 'px'; }
-  function updCount(c) { $('#dirCount').textContent = dirPages.length ? (c + '/' + totalLines() + ' 已核对') : ''; }
+  function updCount() { var c = 0; document.querySelectorAll('#dirLines .dir-line .lnpick').forEach(function (cb) { if (cb.checked) c++; }); $('#dirCount').textContent = dirPages.length ? (c + '/' + totalLines() + ' 已核对') : ''; }
   function totalLines() { var n = 0; dirPages.forEach(function (p) { n += (p.lines || []).length; }); return n; }
   function gatherLines() { var out = []; dirPages.forEach(function (p) { (p.lines || []).forEach(function (l) { out.push(lineText(l)); }); }); return out; }
   $('#dirBrowse').onclick = function () { if (NB) openDrawer(); else toast('网页模式请用「导入文件」'); };
@@ -853,18 +1044,23 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     rd.readAsText(f); e.target.value = '';
   };
   $('#dirCheckAll').onclick = function () {
-    document.querySelectorAll('#dirPages .dline input[type=checkbox]').forEach(function (cb) { if (!cb.checked) { cb.checked = true; cb.onchange(); } });
+    document.querySelectorAll('#dirLines .dir-line .lnpick').forEach(function (cb) { if (!cb.checked) { cb.checked = true; cb.onchange(); } });
   };
-  $('#dirExportTxt').onclick = function () {
-    var ls = gatherLines(); if (!ls.length) return toast('没有台词');
-    download('导演台台词.txt', ls.join('\n')); toast('已导出 txt');
-  };
+  $('#dirExportTxt').onclick = function () { var ls = gatherLines(); if (!ls.length) return toast('没有台词'); download('导演台台词.txt', ls.join('\n')); toast('已导出 txt'); };
   $('#dirWriteBack').onclick = function () {
     if (!NB) { toast('网页模式无法写回'); return; }
     if (!dirPath) { toast('仅从文件夹载入的 json 可写回'); return; }
     var ok = NB.saveText(dirPath, JSON.stringify(dirObj, null, 2));
     toast(ok ? ('已写回：' + nameOf(dirPath)) : '写回失败');
   };
+  $('#dirPrevPage').onclick = function () { if (dirCurPage > 0) gotoPage(dirCurPage - 1); };
+  $('#dirNextPage').onclick = function () { if (dirCurPage < dirPages.length - 1) gotoPage(dirCurPage + 1); };
+  $('#dirPageSel').onchange = function (e) { gotoPage(parseInt(e.target.value, 10) || 0); };
+  $('#btnLinesPage').onclick = function () { setScope('page'); };
+  $('#btnLinesAll').onclick = function () { setScope('all'); };
+  $('#dirMerge').onclick = mergeSelected;
+  $('#dirAutoEmo').onclick = autoEmotion;
+  $('#dirCleanTts').onclick = cleanText;
 
   /* ===== 去黑条 v2（条带识别 + 智能修复） ===== */
   var dbImg = null, dbMode = 'heal', dbResultCanvas = null, dbRawPath = null;
