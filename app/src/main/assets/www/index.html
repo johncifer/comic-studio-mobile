@@ -315,6 +315,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       <div class="section-title">台词文本 <span class="muted" id="linesScopeHint">显示全部</span></div>
       <button class="btn" id="btnLinesPage">本页台词</button>
       <button class="btn" id="btnLinesAll">全部台词</button>
+      <button class="btn" id="dirAddLine">+ 新增台词行</button>
       <button class="btn" id="dirMerge">合并相邻</button>
       <button class="btn" id="dirAutoEmo">自动语气</button>
       <button class="btn" id="dirCleanTts">清理文本</button>
@@ -919,7 +920,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
 
   /* ===== 导演台（复刻电脑端：中间预览框 + 下方台词行，排除配音） ===== */
   var dirObj = null, dirPath = null, dirPages = [], dirCurPage = 0;
-  var dirProjDir = null, dirImages = [], dirLinesScope = 'all';
+  var dirProjDir = null, dirImages = [], dirLinesScope = 'page';
   var EMOTIONS = ['normal', 'happy', 'angry', 'sad', 'excited', 'gentle', 'shout', 'serious', 'moan'];
   function getPages(o) {
     if (!o || typeof o !== 'object') return [];
@@ -946,7 +947,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     dirProjDir = path ? parentOf(path) : null;
     dirImages = (dirProjDir && NB) ? NB.listFolder(dirProjDir).filter(function (it) { return it.isImage; })
       .sort(function (a, b) { return a.name.localeCompare(b.name); }) : [];
-    dirPages = pages; dirCurPage = 0; dirLinesScope = 'all';
+    dirPages = pages; dirCurPage = 0; dirLinesScope = 'page';
     var sel = $('#dirPageSel'); sel.innerHTML = '';
     pages.forEach(function (p, i) { var o = document.createElement('option'); o.value = i; o.textContent = (p.path ? nameOf(p.path) : ('第' + (i + 1) + '页')); sel.appendChild(o); });
     $('#dirProj').classList.remove('hidden');
@@ -978,6 +979,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     else { img.removeAttribute('src'); $('#dirEditorEmpty').classList.remove('hide'); $('#dirOverlay').innerHTML = ''; }
     $('#dirPageSel').value = i;
     renderStrip(); updateScopeHint(); updateRailActive();
+    renderDirLines();
   }
   function renderOverlay(i) {
     var ov = $('#dirOverlay'); ov.innerHTML = '';
@@ -1072,6 +1074,20 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     ta.addEventListener('blur', commit);
     ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); commit(); } });
   }
+  var _lineSeq = 0;
+  function appendLine() {
+    if (!dirPages.length) { toast('请先载入项目'); return; }
+    var p = dirPages[dirCurPage]; if (!p) return;
+    if (!p.lines) p.lines = [];
+    var idx = p.lines.length;
+    var lid = 'L' + dirCurPage + '_add' + (++_lineSeq);
+    p.lines.push({ text: '', emotion: 'normal', _id: lid });
+    if (dirLinesScope === 'all') setScope('page'); // 切到本页，新行在末尾可见
+    renderDirLines();
+    var row = document.getElementById('line-' + lid);
+    if (row) { var l = p.lines[idx]; editLine(l, row); }
+    toast('已在末尾新增一行，可直接输入台词');
+  }
   function mergeSelected() {
     var flat = flatLines(), checked = flat.filter(function (x) { var r = document.getElementById('line-' + x.l._id); return r && r.querySelector('.lnpick').checked; });
     if (checked.length < 2) { toast('先勾选至少 2 行（相邻优先）'); return; }
@@ -1136,6 +1152,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   $('#dirPageSel').onchange = function (e) { gotoPage(parseInt(e.target.value, 10) || 0); };
   $('#btnLinesPage').onclick = function () { setScope('page'); };
   $('#btnLinesAll').onclick = function () { setScope('all'); };
+  $('#dirAddLine').onclick = appendLine;
   $('#dirMerge').onclick = mergeSelected;
   $('#dirAutoEmo').onclick = autoEmotion;
   $('#dirCleanTts').onclick = cleanText;
