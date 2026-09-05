@@ -14,6 +14,8 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import androidx.webkit.WebViewAssetLoader;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -42,13 +44,21 @@ public class MainActivity extends Activity {
         }
         ws.setCacheMode(WebSettings.LOAD_NO_CACHE);
 
-        // 自定义 WebViewClient：拦截 assets/www/vendor/ 下的 wasm/onnx 资源请求，
-        // 用 AssetManager 直接喂流并返回 HTTP 200 + 正确 MIME。
-        // 否则 WebView 的 fetch() 对 file:///android_asset/ 常拿到 status 0 或被拒，
-        // onnxruntime-web 会报 "Failed to fetch" / "no available backend found"。
+        // WebViewAssetLoader：把 assets 目录映射到 https://appassets.androidplatform.net/assets/...
+        // 这是 Google 官方方案，让 WebView 用标准 HTTPS 语义加载本地资源，
+        // onnxruntime-web 的 fetch/wasm 在 file:// 下屡出失败，用 HTTPS 域名可彻底规避。
+        final WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
+                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
+                .build();
+
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                // 优先用 WebViewAssetLoader 处理 appassets.androidplatform.net
+                WebResourceResponse resp = assetLoader.shouldInterceptRequest(request.getUrl());
+                if (resp != null) return resp;
+
+                // Fallback：继续拦截 file:///android_asset/ 下的 wasm/onnx，保留旧路径兼容性
                 android.net.Uri uri = request.getUrl();
                 if ("file".equals(uri.getScheme())) {
                     String path = uri.getPath();
@@ -91,7 +101,8 @@ public class MainActivity extends Activity {
 
         requestPermissionsIfNeeded();
 
-        webView.loadUrl("file:///android_asset/www/index.html");
+        // 改用 WebViewAssetLoader 的 HTTPS 域名加载首页
+        webView.loadUrl("https://appassets.androidplatform.net/assets/www/index.html");
     }
 
     private void requestPermissionsIfNeeded() {

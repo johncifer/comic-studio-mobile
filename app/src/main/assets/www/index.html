@@ -1638,6 +1638,8 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
 
   // —— 手动消除：本地 Mi-GAN ONNX（onnxruntime-web，不连电脑）——
   var dbOrtSession = null, dbOrtLoading = null, dbModelReady = false;
+  // 桌面直接用 file:// 双击打开时，浏览器禁止 fetch wasm/model；APK 里 WebViewAssetLoader 走 https 域名则正常。
+  var DB_NEED_HTTP = (location.protocol === 'file:') && !/appassets\.androidplatform\.net$/.test(location.host || '');
   function dbLoadModel() {
     if (dbOrtSession) return Promise.resolve(dbOrtSession);
     if (dbOrtLoading) return dbOrtLoading;
@@ -1659,12 +1661,12 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   }
   if ($('#dbLoadModel')) $('#dbLoadModel').onclick = function () {
     dbLoadModel().catch(function (e) {
-      dbStatusMsg('模型加载失败：' + (e && e.message ? e.message : e) + (location.protocol === 'file:' ? '（当前是 file://，请用 http://localhost:8778/ 打开）' : ''));
+      dbStatusMsg('模型加载失败：' + (e && e.message ? e.message : e) + (DB_NEED_HTTP ? '（当前是 file://，请用 http://localhost:8778/ 打开）' : ''));
       toast('模型加载失败：' + (e && e.message ? e.message : e));
     });
   };
   // file:// 直接双击打开时浏览器会拦截 wasm/模型 fetch，给明确提示
-  if (location.protocol === 'file:') {
+  if (DB_NEED_HTTP) {
     dbStatusMsg('⚠ 当前是 file:// 直接打开，模型(wasm)无法加载。「识别预览」能用，但「消除」需改用本地服务器：http://localhost:8778/ （我这边的 python 服务已起好）');
   }
   // 运行时若已就绪（vendor 存在且经 HTTP 加载），后台预加载 Mi-GAN，
@@ -1692,7 +1694,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       dbSaveSlot();
       dbStatusMsg('✅ 本地消除完成，已生成去条带图。可「写回/导出」，或 ◀▶ 切下一张。');
     }).catch(function (e) {
-      dbStatusMsg('❌ 消除失败：' + (e && e.message ? e.message : e) + (location.protocol === 'file:' ? '（当前是 file://，请用 http://localhost:8778/ 打开）' : ''));
+      dbStatusMsg('❌ 消除失败：' + (e && e.message ? e.message : e) + (DB_NEED_HTTP ? '（当前是 file://，请用 http://localhost:8778/ 打开）' : ''));
       toast('消除失败：' + (e && e.message ? e.message : e));
     });
   }

@@ -36,4 +36,7 @@ android {
 dependencies {
     // FileProvider（APK 安装桥接）需要 AndroidX core
     implementation 'androidx.core:core:1.13.1'
+    // WebViewAssetLoader：把 assets 映射为 https://appassets.androidplatform.net/assets/...
+    // 让 onnxruntime-web 在 WebView 内用标准 fetch 加载 wasm/onnx，规避 file:// 协议限制
+    implementation 'androidx.webkit:webkit:1.11.0'
 }
