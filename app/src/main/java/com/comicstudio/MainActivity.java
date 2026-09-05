@@ -8,9 +8,16 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends Activity {
     private static final int REQ_ALL_FILES = 1001;
@@ -34,7 +41,50 @@ public class MainActivity extends Activity {
             ws.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
         ws.setCacheMode(WebSettings.LOAD_NO_CACHE);
-        webView.setWebViewClient(new WebViewClient());
+
+        // 自定义 WebViewClient：拦截 assets/www/vendor/ 下的 wasm/onnx 资源请求，
+        // 用 AssetManager 直接喂流并返回 HTTP 200 + 正确 MIME。
+        // 否则 WebView 的 fetch() 对 file:///android_asset/ 常拿到 status 0 或被拒，
+        // onnxruntime-web 会报 "Failed to fetch" / "no available backend found"。
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                android.net.Uri uri = request.getUrl();
+                if ("file".equals(uri.getScheme())) {
+                    String path = uri.getPath();
+                    if (path != null && path.startsWith("/android_asset/")) {
+                        String assetPath = path.substring("/android_asset/".length());
+                        try {
+                            InputStream is = getAssets().open(assetPath);
+                            String name = uri.getLastPathSegment();
+                            String mime = guessMime(name);
+                            Map<String, String> headers = new HashMap<>();
+                            headers.put("Access-Control-Allow-Origin", "*");
+                            return new WebResourceResponse(mime, null, 200, "OK", headers, is);
+                        } catch (IOException e) {
+                            return null;
+                        }
+                    }
+                }
+                return super.shouldInterceptRequest(view, request);
+            }
+
+            private String guessMime(String name) {
+                if (name == null) return "application/octet-stream";
+                String n = name.toLowerCase();
+                if (n.endsWith(".wasm")) return "application/wasm";
+                if (n.endsWith(".onnx")) return "application/octet-stream";
+                if (n.endsWith(".js")) return "application/javascript";
+                if (n.endsWith(".html")) return "text/html";
+                if (n.endsWith(".css")) return "text/css";
+                if (n.endsWith(".png")) return "image/png";
+                if (n.endsWith(".jpg") || n.endsWith(".jpeg")) return "image/jpeg";
+                if (n.endsWith(".svg")) return "image/svg+xml";
+                if (n.endsWith(".json")) return "application/json";
+                if (n.endsWith(".webp")) return "image/webp";
+                return "application/octet-stream";
+            }
+        });
         webView.setWebChromeClient(new WebChromeClient());
         // 注入 JS 桥，前端通过 window.ComicBridge 调用原生能力
         webView.addJavascriptInterface(new ComicBridge(this), "ComicBridge");
