@@ -63,6 +63,17 @@ input,textarea{font-family:inherit;}
 .fm-use{margin:6px 16px 10px;font-size:12.5px;font-weight:700;color:#fff;
   background:linear-gradient(135deg,var(--accent2),#4dabf7);border-radius:11px;padding:10px;text-align:center;}
 
+/* 全局撤销/重做浮动栏（所有功能通用） */
+#histBar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + var(--safe-b));z-index:80;
+  display:flex;gap:8px;padding:6px;background:rgba(20,20,31,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 22px rgba(0,0,0,.5);}
+#histBar.hidden{display:none;}
+#histBar button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  min-width:84px;padding:8px 12px;border-radius:10px;background:var(--panel2);font-size:17px;line-height:1;color:var(--txt);}
+#histBar button .lbl{font-size:10px;color:var(--sub);max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#histBar button:disabled{opacity:.32;}
+#histBar button:active{transform:scale(.97);}
+
 /* panes */
 .pane{position:absolute;left:0;right:0;top:0;bottom:0;overflow:auto;padding:calc(14px + var(--safe-t)) 14px calc(20px + var(--safe-b));display:none;}
 .pane.active{display:block;}
@@ -264,6 +275,10 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
 
 <!-- 浮标 + 抽屉 -->
 <button id="fab">☰</button>
+<div id="histBar" class="hidden">
+  <button id="histUndo" disabled>↶ 撤销<span class="lbl">无操作</span></button>
+  <button id="histRedo" disabled>↷ 重做<span class="lbl">无操作</span></button>
+</div>
 <div id="scrim" class="hidden"></div>
 <aside id="drawer">
   <div class="dw-title">功能</div>
@@ -499,6 +514,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     <button data-tool="pen"><span class="ic">✎</span>涂鸦</button>
     <button data-tool="paint"><span class="ic">🎨</span>上色</button>
     <button id="undoBtn"><span class="ic">↶</span>撤销</button>
+    <button id="redoBtn"><span class="ic">↷</span>重做</button>
     <button id="saveBtn" class="accent"><span class="ic">⬇</span>导出</button>
   </nav>
 </section>
@@ -567,6 +583,56 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     closeDrawer();
   }
   document.querySelectorAll('.func-btn').forEach(function (b) { b.onclick = function () { switchPane(b.dataset.pane); }; });
+
+  /* ===== 全局撤销/重做管理器 ===== */
+  // 用法：Hist.push('操作名', undoFn, redoFn) —— undoFn 恢复旧状态，redoFn 重做。
+  // 新操作会清空重做栈。Hist.update() 自动刷新底部浮动栏。
+  var Hist = (function () {
+    var undoStack = [], redoStack = [];
+    function update() {
+      var bar = $('#histBar'), u = $('#histUndo'), r = $('#histRedo');
+      if (bar) {
+        var has = undoStack.length || redoStack.length;
+        bar.classList.toggle('hidden', !has || currentPane === 'editor');
+      }
+      if (u) {
+        u.disabled = !undoStack.length;
+        var lu = u.querySelector('.lbl'); if (lu) lu.textContent = undoStack.length ? undoStack[undoStack.length - 1].label : '无操作';
+      }
+      if (r) {
+        r.disabled = !redoStack.length;
+        var lr = r.querySelector('.lbl'); if (lr) lr.textContent = redoStack.length ? redoStack[redoStack.length - 1].label : '无操作';
+      }
+    }
+    function push(label, undoFn, redoFn) {
+      undoStack.push({ label: label, undo: undoFn, redo: redoFn });
+      redoStack.length = 0;
+      update();
+    }
+    function undo() {
+      if (!undoStack.length) return;
+      var a = undoStack.pop(); redoStack.push(a);
+      try { a.undo(); } catch (e) { console.error('undo失败', e); }
+      update();
+    }
+    function redo() {
+      if (!redoStack.length) return;
+      var a = redoStack.pop(); undoStack.push(a);
+      try { a.redo(); } catch (e) { console.error('redo失败', e); }
+      update();
+    }
+    function reset() { undoStack.length = 0; redoStack.length = 0; update(); }
+    return { push: push, undo: undo, redo: redo, reset: reset, update: update };
+  })();
+  $('#histUndo').onclick = function () { Hist.undo(); };
+  $('#histRedo').onclick = function () { Hist.redo(); };
+  // 物理键盘：Ctrl/Cmd+Z 撤销，Ctrl/Cmd+Shift+Z（或 Ctrl+Y）重做
+  document.addEventListener('keydown', function (e) {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    var k = e.key.toLowerCase();
+    if (k === 'z' && !e.shiftKey) { e.preventDefault(); Hist.undo(); }
+    else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); Hist.redo(); }
+  });
 
   /* ===== 抽屉 / 浮标 ===== */
   var drawerOpen = false;
@@ -805,6 +871,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
 
   /* ===== 漫画浏览 / 标注 ===== */
   var editState = null;
+  var editRedoStack = [];  // 编辑器内部「重做」栈（与全局 Hist 分开，避免跨图错乱）
   var browseDir = '', browseImages = [], browseIndex = 0;
   function renderComic(path) {
     fmPath = path;
@@ -904,6 +971,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   }
   function bindCanvas() {
     var cv = $('#cv'), ctx = cv.getContext('2d');
+    editRedoStack = [];  // 每次打开编辑器重置重做栈
     function pos(e) { var r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * cv.width, y: (e.clientY - r.top) / r.height * cv.height }; }
     cv.addEventListener('pointerdown', function (e) {
       e.preventDefault(); cv.setPointerCapture(e.pointerId);
@@ -934,7 +1002,8 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     document.querySelectorAll('.swatch').forEach(function (s) {
       s.onclick = function () { document.querySelectorAll('.swatch').forEach(function (x) { x.classList.remove('active'); }); s.classList.add('active'); editState.color = s.dataset.color; };
     });
-    $('#undoBtn').onclick = function () { editState.commands.pop(); redraw(); };
+    $('#undoBtn').onclick = function () { if (!editState.commands.length) return; var c = editState.commands.pop(); editRedoStack.push(c); redraw(); };
+    $('#redoBtn').onclick = function () { if (!editRedoStack.length) return; var c = editRedoStack.pop(); editState.commands.push(c); redraw(); };
     $('#saveBtn').onclick = saveEdit;
     $('#backBtn').onclick = function () { $('#editor').classList.add('hidden'); };
   }
@@ -1117,22 +1186,38 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     for (var pi = 0; pi < dirPages.length; pi++) {
       var lines = dirPages[pi].lines || [], k = lines.findIndex(function (l) { return l._id === lid; }); if (k < 0) continue;
       var j = k + d; if (j < 0 || j >= lines.length) return;
-      var t = lines[k]; lines[k] = lines[j]; lines[j] = t; break;
+      var before = lines.map(function (x) { return x._id; });
+      var t = lines[k]; lines[k] = lines[j]; lines[j] = t;
+      var after = lines.map(function (x) { return x._id; });
+      renderDirLines();
+      var PI = pi;
+      Hist.push('移动台词', function () { dirPages[PI].lines.sort(function (a, b) { return before.indexOf(a._id) - before.indexOf(b._id); }); renderDirLines(); },
+                              function () { dirPages[PI].lines.sort(function (a, b) { return after.indexOf(a._id) - after.indexOf(b._id); }); renderDirLines(); });
+      break;
     }
-    renderDirLines();
   }
   function deleteLine(l) {
+    var info = null;
     for (var pi = 0; pi < dirPages.length; pi++) {
-      var lines = dirPages[pi].lines || [], k = lines.findIndex(function (x) { return x._id === l._id; }); if (k >= 0) { lines.splice(k, 1); break; }
+      var lines = dirPages[pi].lines || [], k = lines.findIndex(function (x) { return x._id === l._id; }); if (k >= 0) { info = { pi: pi, k: k, l: l }; break; }
     }
+    if (!info) return;
+    var L = info.l, PI = info.pi, K = info.k;
+    dirPages[PI].lines.splice(K, 1);
     renderDirLines();
+    Hist.push('删除台词', function () { if (dirPages[PI].lines.indexOf(L) < 0) dirPages[PI].lines.splice(K, 0, L); renderDirLines(); },
+                            function () { if (dirPages[PI].lines.indexOf(L) < 0) dirPages[PI].lines.splice(K, 0, L); renderDirLines(); });
   }
   function editLine(l, row) {
     var span = row.querySelector('.lntext'), boxEl = row.querySelector('.ln-box');
     if (!span) return;
     var ta = document.createElement('textarea'); ta.className = 'lntext editing'; ta.value = l.text; ta.rows = 2;
     boxEl.replaceChild(ta, span); ta.focus();
-    function commit() { l.text = ta.value; renderDirLines(); }
+    function commit() {
+      var old = l.text, nv = ta.value;
+      l.text = nv; renderDirLines();
+      if (old !== nv) { var L = l; Hist.push('修改台词', function () { L.text = old; renderDirLines(); }, function () { L.text = nv; renderDirLines(); }); }
+    }
     ta.addEventListener('blur', commit);
     ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); commit(); } });
   }
@@ -1141,14 +1226,17 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     if (!dirPages.length) { toast('请先载入项目'); return; }
     var p = dirPages[dirCurPage]; if (!p) return;
     if (!p.lines) p.lines = [];
-    var idx = p.lines.length;
     var lid = 'L' + dirCurPage + '_add' + (++_lineSeq);
-    p.lines.push({ text: '', emotion: 'normal', _id: lid });
+    var newL = { text: '', emotion: 'normal', _id: lid };
+    p.lines.push(newL);
     if (dirLinesScope === 'all') setScope('page'); // 切到本页，新行在末尾可见
     renderDirLines();
     var row = document.getElementById('line-' + lid);
-    if (row) { var l = p.lines[idx]; editLine(l, row); }
+    if (row) { editLine(newL, row); }
     toast('已在末尾新增一行，可直接输入台词');
+    var PI = dirCurPage, L = newL;
+    Hist.push('新增台词', function () { var arr = dirPages[PI].lines, i = arr.findIndex(function (x) { return x._id === L._id; }); if (i >= 0) arr.splice(i, 1); renderDirLines(); },
+                            function () { if (dirPages[PI].lines.indexOf(L) < 0) dirPages[PI].lines.push(L); renderDirLines(); if (dirLinesScope === 'all') setScope('page'); });
   }
   function mergeSelected() {
     var flat = flatLines(), checked = flat.filter(function (x) { var r = document.getElementById('line-' + x.l._id); return r && r.querySelector('.lnpick').checked; });
@@ -1683,8 +1771,14 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       dbStatusMsg('本地 AI 修复中…');
       return miganInpaint(dbImg, dbMaskCanvas, sess);
     }).then(function (canvas) {
+      // 消除前快照（用于撤销/重做）
+      var prevSrc = $('#dbBigImg').src;                 // 原图显示
+      var prevDl = $('#dbDownload').style.display;
+      var newCanvas = canvas;
+      var newSrc = canvas.toDataURL('image/png');
+      var gi = dbGalleryIdx;
       dbResultCanvas = canvas;
-      $('#dbBigImg').src = canvas.toDataURL('image/png');
+      $('#dbBigImg').src = newSrc;
       $('#dbDownload').style.display = 'inline-block';
       $('#dbDraw').classList.add('hidden'); $('#dbConfirm').classList.add('hidden');
       dbResetMask();
@@ -1693,6 +1787,20 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       var rt = $('#dbRegionToggle'); if (rt) rt.textContent = '🔴 圈选范围(红笔刷)：关';
       dbSaveSlot();
       dbStatusMsg('✅ 本地消除完成，已生成去条带图。可「写回/导出」，或 ◀▶ 切下一张。');
+      // 接入全局撤销/重做：撤销=恢复原图，重做=恢复结果
+      Hist.push('去黑条消除', function () {
+        $('#dbBigImg').src = prevSrc;
+        dbResultCanvas = null; dbResultB64 = null;
+        $('#dbDownload').style.display = prevDl;
+        if (dbGallery[gi]) { dbGallery[gi].resultCanvas = null; dbGallery[gi].resultB64 = null; }
+        dbStatusMsg('↩ 已撤销本次消除，恢复原图。可重新涂遮罩再消除。');
+      }, function () {
+        $('#dbBigImg').src = newSrc;
+        dbResultCanvas = newCanvas; dbResultB64 = newSrc;
+        $('#dbDownload').style.display = 'inline-block';
+        if (dbGallery[gi]) { dbGallery[gi].resultCanvas = newCanvas; dbGallery[gi].resultB64 = newSrc; }
+        dbStatusMsg('↪ 已重做本次消除。');
+      });
     }).catch(function (e) {
       dbStatusMsg('❌ 消除失败：' + (e && e.message ? e.message : e) + (DB_NEED_HTTP ? '（当前是 file://，请用 http://localhost:8778/ 打开）' : ''));
       toast('消除失败：' + (e && e.message ? e.message : e));
@@ -1820,6 +1928,16 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   }
   // 模板管理
   var TPL_KEY = 'flesh_templates_v1';
+  // FleshOut 文本撤销：记录「改动前」文本，任何改写都压入全局撤销栈
+  var flPrevText = '';
+  function flRecord(prevVal) {
+    var cur = $('#flInput').value;
+    if (prevVal === cur) return;
+    var p = prevVal, c = cur;
+    Hist.push('润色文本', function () { $('#flInput').value = p; }, function () { $('#flInput').value = c; });
+  }
+  $('#flInput').addEventListener('focus', function () { flPrevText = $('#flInput').value; });
+  $('#flInput').addEventListener('change', function () { flRecord(flPrevText); flPrevText = $('#flInput').value; });
   var templates = [];
   var editingTpl = null;
   function loadTemplates() {
@@ -1884,6 +2002,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   $('#flOutline').onclick = function () { var t = $('#flInput').value; if (!t.trim()) return toast('先粘贴或导入正文'); $('#flOutlineOut').innerHTML = buildOutline(t); };
   $('#flFmt').onclick = function () {
     var t = $('#flInput').value; if (!t.trim()) return toast('先粘贴或导入正文');
+    var prev = t;
     var out = t.split(/\r?\n/).map(function (raw) {
       var ln = raw.trim(); if (!ln) return '';
       var m = ln.match(/^([一-龥A-Za-z·]{1,8})[\s]*[:：][\s]*(.+)$/);
@@ -1893,16 +2012,19 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     $('#flInput').value = out;
     $('#flFmtOut').textContent = '已统一对白格式（角色：台词，全角冒号）。';
     toast('已格式化对白');
+    flRecord(prev);
   };
   $('#flTplRewrite').onclick = function () {
     if (editingTpl === null && !templates.length) return toast('先应用/新建一个模板');
     var idx = (editingTpl !== null && templates[editingTpl]) ? editingTpl : 0;
     var t = templates[idx]; if (!t || !t.rules || !t.rules.length) return toast('该模板没有本地规则');
+    var prev = $('#flInput').value;
     var txt = $('#flInput').value;
     t.rules.forEach(function (r) { try { txt = txt.split(r.find).join(r.repl); } catch (e) {} });
     $('#flInput').value = txt;
     $('#flFmtOut').textContent = '已按模板「' + t.name + '」规则改写（' + t.rules.length + ' 条）。';
     toast('已按模板改写');
+    flRecord(prev);
   };
   $('#flExport').onclick = function () { if (!$('#flInput').value.trim()) return toast('没有内容'); download('fleshout.txt', $('#flInput').value); toast('已导出 txt'); };
   $('#flSend').onclick = function () {
