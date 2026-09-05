@@ -21,6 +21,12 @@ android {
         }
     }
 
+    // 去黑条本地的 onnxruntime-web 运行时与 Mi-GAN 模型必须“不压缩”打包进 APK：
+    // 若被 aapt 压缩，手机 WebView 用 file:// 读 assets 出来是压缩流，wasm/onnx 解析必失败。
+    aaptOptions {
+        noCompress "onnx", "wasm"
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
