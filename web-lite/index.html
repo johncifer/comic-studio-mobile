@@ -174,10 +174,16 @@ textarea.inp{width:100%;background:var(--panel);color:var(--txt);border:1px soli
 .db-dot{width:9px;height:9px;border-radius:50%;background:#666;flex:0 0 auto;}
 .db-dot.on{background:#46d27a;box-shadow:0 0 8px #46d27a88;}
 .db-dot.off{background:#e06a6a;}
-.db-bigwrap{position:relative;background:#0c0e12;border:1px solid var(--line);border-radius:12px;padding:8px;margin:10px 0;}
-.db-bigbox{position:relative;display:inline-block;line-height:0;max-width:100%;border:1px solid var(--line);border-radius:7px;}
-.db-bigbox img{display:block;max-width:100%;width:100%;height:auto;background:#000;}
+.db-bigwrap{position:relative;background:#0c0e12;border:1px solid var(--line);border-radius:12px;padding:8px;margin:10px 0;overflow:auto;max-height:74vh;-webkit-overflow-scrolling:touch;}
+.db-bigbox{position:relative;display:inline-block;line-height:0;max-width:none;border:1px solid var(--line);border-radius:7px;}
+.db-bigbox img{display:block;max-width:none;width:100%;height:auto;background:#000;}
 .db-maskcanvas{position:absolute;left:0;top:0;width:100%;height:100%;touch-action:none;cursor:crosshair;}
+.db-zoombar{display:flex;gap:6px;align-items:center;justify-content:center;margin:4px 0 2px;flex-wrap:wrap;}
+.db-zoombar .val{min-width:48px;text-align:center;font-variant-numeric:tabular-nums;color:var(--sub);}
+.db-zoombar .db-hint{margin-left:4px;}
+.db-nav{display:flex;gap:14px;align-items:center;justify-content:center;margin:6px 0 2px;}
+.db-nav .val{min-width:64px;text-align:center;font-variant-numeric:tabular-nums;color:var(--sub);}
+#dbBrushLock.lock-on{background:var(--accent2);color:#08121a;font-weight:600;border-color:var(--accent2);}
 .db-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--sub);font-size:12.5px;line-height:1.6;padding:18px;pointer-events:none;}
 .db-empty.hide{display:none;}
 .db-rows{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0;}
@@ -350,32 +356,25 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
 <!-- ===== 去黑条（iopaint 后端 · 手机版） ===== -->
 <section id="paneDeband" class="pane">
   <div class="pane-head">🧹 去黑条 / 去条带</div>
-  <p class="hint">后端跑在电脑端的 iopaint（AI 修复）。先填电脑的局域网 IP 连接，再用「🤖自动识别」或「🖌手动消除」。预览图像导演台一样大。无网络时仍可用「✂️裁剪黑边」离线处理。</p>
-
-  <div class="db-pc">
-    <span class="db-dot" id="dbDot"></span>
-    <input class="inp" id="dbHost" placeholder="电脑局域网IP，如 192.168.1.50" inputmode="numeric">
-    <button class="btn small" id="dbTest">连接测试</button>
-  </div>
+  <p class="hint">🤖自动识别与🖌手动消除都跑在手机本地，不连电脑。自动识别用本地算法区分「粗黑条/大面积黑块」与「细笔线/网点」（阈值越高只认越粗的块）；手动消除用本地 Mi-GAN 修补。预览图像导演台一样大。</p>
 
   <button class="pick alt" id="dbBrowse">📁 从文件夹选图片（作为项目）</button>
-  <button class="pick" id="dbPick" style="display:none">🖼 选择单张图片</button>
-  <input id="dbFile" type="file" accept="image/*" hidden>
+  <button class="pick" id="dbPick" style="display:none">🖼 选择图片（可多选）</button>
+  <input id="dbFile" type="file" accept="image/*" multiple hidden>
 
   <div class="seg" id="dbSeg">
     <button data-mode="auto" class="active">🤖 自动识别</button>
     <button data-mode="manual">🖌 手动消除</button>
-    <button data-mode="crop">✂️ 裁剪黑边</button>
   </div>
 
   <!-- 自动识别 专用 -->
   <div class="db-row hidden" id="dbAutoRow">
     <label>识别阈值</label>
-    <input type="range" id="dbDelta" min="5" max="140" value="45" step="5">
-    <span class="val" id="dbDeltaVal">45</span>
-    <button class="btn small" id="dbRegionToggle">✏️ 圈选范围：关</button>
+    <input type="range" id="dbDelta" min="5" max="140" value="70" step="5">
+    <span class="val" id="dbDeltaVal">70</span>
+    <button class="btn small" id="dbRegionToggle">🔴 圈选范围(红笔刷)：关</button>
   </div>
-  <div class="db-hint hidden" id="dbAutoHint">阈值越高只认与背景反差大的块，排除小块反光/弱阴影。需要只查某块时开「圈选范围」涂出搜索区。</div>
+  <div class="db-hint hidden" id="dbAutoHint">用背景色找出「和背景不同的最大那块连通区域」直接当黑条。「识别阈值」调黑白反差（越高只认反差大的块）。面积天然把细笔线（总面积小）和实心黑条（总面积大）分开，无需粗细阈值。要只查某块时开「圈选范围」。</div>
 
   <!-- 手动消除 专用 -->
   <div class="db-row hidden" id="dbManualRow">
@@ -383,14 +382,36 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     <input type="range" id="dbBrushSize" min="8" max="120" value="34">
     <span class="val" id="dbBrushVal">34</span>
     <button class="btn small" id="dbBrushClear">清除</button>
+    <button class="btn small" id="dbBrushLock">🔒 笔刷</button>
   </div>
-  <div class="db-hint hidden" id="dbManualHint">在图上把要消除的区域涂白（黑底），松手后点「🚀 发送到电脑消除」。可去任意瑕疵/文字/物体。</div>
+  <div class="db-hint hidden" id="dbManualHint">① 双指缩放/平移定位画面；② 点「🔒笔刷」锁定（画面不动）；③ 单指涂抹要消除的区域；④ 点「🚀 本地消除」。全程手机本地 Mi-GAN，不连电脑。</div>
+  <div class="db-row hidden" id="dbModelRow">
+    <button class="btn small" id="dbLoadModel">📦 加载本地模型</button>
+    <span class="db-dot" id="dbModelDot"></span>
+    <span class="muted" id="dbModelTxt">首次使用需加载 Mi-GAN（本地推理，不连电脑）</span>
+  </div>
 
   <!-- 主操作 -->
   <div class="db-act">
     <button class="btn accent2" id="dbPrimary">🔍 识别条带</button>
     <button class="btn primary hidden" id="dbConfirm">✅ 确认消除</button>
     <button class="btn hidden" id="dbReset">↺ 重选</button>
+  </div>
+
+  <!-- 缩放工具条 -->
+  <div class="db-zoombar">
+    <button class="btn small" id="dbZoomOut">－</button>
+    <span class="val" id="dbZoomVal">100%</span>
+    <button class="btn small" id="dbZoomIn">＋</button>
+    <button class="btn small" id="dbZoomFit">适配</button>
+    <span class="db-hint" style="margin-left:6px">双指缩放/平移定位；点「🔒笔刷」锁定后单指涂抹</span>
+  </div>
+
+  <!-- 左右切换图片（多选导入后） -->
+  <div class="db-nav hidden" id="dbNav">
+    <button class="btn small" id="dbPrev">◀</button>
+    <span class="val" id="dbNavIdx">1 / 1</span>
+    <button class="btn small" id="dbNext">▶</button>
   </div>
 
   <!-- 导演台式大预览 -->
@@ -484,6 +505,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
 
 <div id="toast"></div>
 
+<script src="vendor/ort/ort.min.js"></script>
 <script>
 (function () {
   "use strict";
@@ -1201,10 +1223,12 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   var dbImg = null, dbRawPath = null, dbResultCanvas = null;
   var dbMode = 'auto';
   var dbHost = localStorage.getItem('dbHost') || '';
-  var dbStudioBase = '', dbIopaintBase = '';
+  var dbStudioBase = '';
   var dbMaskCanvas = null;          // 全分辨率遮罩（手动消除，白=消除）
   var dbDrawOn = false, dbBrush = 34, dbDrawing = false, dbLast = null;
   var dbRegionOn = false, dbRegionStrokes = [], dbRegionCur = null;
+  // 多图画廊（左右切换） + 笔刷锁定
+  var dbGallery = [], dbGalleryIdx = -1, dbBrushLock = false;
   var dbPreviewB64 = null, dbResultB64 = null, dbDeltaT = null;
 
   function dbSetBase(h) {
@@ -1213,7 +1237,6 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     if (!h) return;
     dbHost = h; localStorage.setItem('dbHost', h);
     dbStudioBase = 'http://' + h + ':8787';
-    dbIopaintBase = 'http://' + h + ':7900';
   }
   function dbApi(path, body) {
     return fetch(dbStudioBase + path, {
@@ -1223,52 +1246,70 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   }
   function dbStatusMsg(m) { var s = $('#dbStatus'); if (s) s.textContent = m || ''; }
 
-  // 连接测试（仅探测，不拉起 iopaint）
-  $('#dbTest').onclick = function () {
-    dbSetBase($('#dbHost').value);
-    if (!dbStudioBase) return toast('先填电脑局域网 IP');
-    dbStatusMsg('连接测试中…');
-    fetch(dbStudioBase + '/api/iopaint/status').then(function (r) { return r.json(); })
-      .then(function (j) {
-        $('#dbDot').className = 'db-dot on';
-        dbStatusMsg('已连接电脑（iopaint ' + (j.running ? '运行中' : '待启动') + '）');
-      })
-      .catch(function () {
-        $('#dbDot').className = 'db-dot off';
-        dbStatusMsg('连不上：检查电脑IP / 防火墙放行 8787·7900 / 工作室是否运行');
-      });
-  };
-  if (dbHost) dbSetBase(dbHost);
+  if (dbHost) dbSetBase(dbHost);   // 保留兼容变量，去黑条现已全本地、不依赖电脑
 
   // 图片载入
   $('#dbBrowse').onclick = function () { if (NB) openDrawer(); else toast('网页模式请用「选择图片」'); };
   $('#dbPick').onclick = function () { $('#dbFile').click(); };
   $('#dbFile').onchange = function (e) {
-    var f = e.target.files && e.target.files[0]; if (!f) return;
-    var rd = new FileReader();
-    rd.onload = function () { var im = new Image(); im.onload = function () { setDb(im, null); }; im.src = rd.result; };
-    rd.readAsDataURL(f); e.target.value = '';
+    var files = e.target.files; if (!files || !files.length) return;
+    var base = dbGallery.length, n = files.length, done = 0;
+    Array.prototype.forEach.call(files, function (f) {
+      var rd = new FileReader();
+      rd.onload = function () {
+        var im = new Image();
+        im.onload = function () { dbPushImage(im, null); if (++done === n) dbLoadSlot(base); };
+        im.src = rd.result;
+      };
+      rd.readAsDataURL(f);
+    });
+    e.target.value = '';
   };
-  function setDb(im, raw) {
-    dbImg = im; dbRawPath = raw; dbResultCanvas = null; dbPreviewB64 = null; dbResultB64 = null;
-    $('#dbBigImg').src = im.src;
-    $('#dbEmpty').classList.add('hide');
-    $('#dbDownload').style.display = 'none';
-    $('#dbConfirm').classList.add('hidden');
-    dbResetMask();
-    dbRegionStrokes = []; dbRegionOn = false; $('#dbRegionToggle').textContent = '✏️ 圈选范围：关';
-    dbStatusMsg('已选图。' + (dbMode === 'auto' ? '点「识别条带」' : '涂出要消除的区域后点「发送到电脑消除」'));
-    setTimeout(dbFitDraw, 50);
+  function dbHideOverlay() {
+    var dc = $('#dbDraw'); dc.classList.add('hidden');
+    var c = dc.getContext('2d'); c.clearRect(0, 0, dc.width, dc.height);
   }
+  function dbSaveSlot() {
+    var i = dbGalleryIdx; if (i < 0) return;
+    var s = dbGallery[i];
+    s.mask = dbMaskCanvas; s.resultCanvas = dbResultCanvas;
+    s.resultB64 = dbResultCanvas ? $('#dbBigImg').src : null;
+    s.zoom = dbZoom; s.sl = $('#dbBigWrap').scrollLeft; s.st = $('#dbBigWrap').scrollTop;
+  }
+  function dbLoadSlot(i) {
+    if (i < 0 || i >= dbGallery.length) return;
+    dbSaveSlot();
+    var s = dbGallery[i]; dbGalleryIdx = i;
+    dbImg = s.img; dbRawPath = s.raw;
+    dbMaskCanvas = s.mask || null; dbResultCanvas = s.resultCanvas || null; dbPreviewB64 = null;
+    dbRegionStrokes = []; dbRegionOn = false; $('#dbRegionToggle').textContent = '🔴 圈选范围(红笔刷)：关';
+    $('#dbBigImg').src = s.resultB64 || s.img.src;
+    $('#dbEmpty').classList.add('hide');
+    $('#dbDownload').style.display = s.resultB64 ? 'inline-block' : 'none';
+    $('#dbConfirm').classList.add('hidden');
+    dbHideOverlay();
+    $('#dbNavIdx').textContent = (i + 1) + ' / ' + dbGallery.length;
+    dbStatusMsg('第 ' + (i + 1) + ' / ' + dbGallery.length + ' 张。' + (dbMode === 'auto' ? '点「识别条带」' : '点「🔒笔刷」锁定后涂抹（本地）'));
+    setTimeout(function () { dbRecordFit(); dbZoom = s.zoom || 1; dbApplyZoom(); var w = $('#dbBigWrap'); w.scrollLeft = s.sl || 0; w.scrollTop = s.st || 0; }, 60);
+  }
+  function dbPushImage(im, raw) {
+    dbGallery.push({ img: im, raw: raw, mask: null, resultCanvas: null, resultB64: null, zoom: 1, sl: 0, st: 0 });
+    dbLoadSlot(dbGallery.length - 1);
+    $('#dbNav').classList.toggle('hidden', dbGallery.length < 2);
+  }
+  function setDb(im, raw) { dbPushImage(im, raw); }
   function loadDeband(path) {
     var im = new Image();
     im.onload = function () { setDb(im, path); };
     im.src = NB.readImageBase64(path, 1600);
   }
   function dbReset() {
+    dbSaveSlot();
+    dbGallery = []; dbGalleryIdx = -1;
     dbImg = null; dbResultCanvas = null; dbRawPath = null; dbPreviewB64 = null; dbResultB64 = null;
     $('#dbBigImg').removeAttribute('src'); $('#dbEmpty').classList.remove('hide');
     $('#dbDownload').style.display = 'none'; $('#dbConfirm').classList.add('hidden');
+    $('#dbNav').classList.add('hidden');
     $('#dbStatus').textContent = ''; dbResetMask();
   }
   function dbResetMask() {
@@ -1276,13 +1317,102 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     var dc = $('#dbDraw'); dc.classList.add('hidden');
     var c = dc.getContext('2d'); c.clearRect(0, 0, dc.width, dc.height);
   }
+  function dbRedrawOverlay() {
+    var dc = $('#dbDraw'); if (dc.classList.contains('hidden')) return;
+    var ctx = dc.getContext('2d'); ctx.clearRect(0, 0, dc.width, dc.height);
+    if (dbMaskCanvas) {
+      ctx.globalAlpha = 0.35; ctx.drawImage(dbMaskCanvas, 0, 0, dc.width, dc.height); ctx.globalAlpha = 1;
+    }
+    // 圈选范围 = 红色蒙版笔刷（始终可见，叠在识别蒙版之上）
+    if (dbRegionOn && dbRegionStrokes && dbRegionStrokes.length) {
+      ctx.strokeStyle = 'rgba(255,45,45,.55)'; ctx.fillStyle = 'rgba(255,45,45,.55)';
+      ctx.lineWidth = Math.max(6, Math.round(0.05 * Math.min(dc.width, dc.height)));
+      ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      dbRegionStrokes.forEach(function (stk) {
+        if (!stk.length) return;
+        if (stk.length === 1) { ctx.beginPath(); ctx.arc(stk[0].x * dc.width, stk[0].y * dc.height, ctx.lineWidth / 2, 0, 7); ctx.fill(); return; }
+        ctx.beginPath();
+        stk.forEach(function (p, i) { var X = p.x * dc.width, Y = p.y * dc.height; if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y); });
+        ctx.stroke();
+      });
+    }
+  }
   function dbFitDraw() {
     var dc = $('#dbDraw');
     if (dc.classList.contains('hidden')) return;
     var img = $('#dbBigImg');
     if (!img.clientWidth) { requestAnimationFrame(dbFitDraw); return; }
+    dc.style.width = img.clientWidth + 'px'; dc.style.height = img.clientHeight + 'px';
     dc.width = img.clientWidth; dc.height = img.clientHeight;
+    dbRedrawOverlay();
   }
+  // —— 预览缩放 / 平移（方便细微操作）——
+  // 注意：缩放靠改图片显示宽度（不是 CSS transform），
+  // 这样 dbXY 的 getBoundingClientRect 与笔刷 naturalWidth/clientWidth 换算在任何倍率下都成立。
+  var dbZoom = 1, dbFitW = 0, dbGesturing = false, DB_ZOOM_MIN = 0.1;
+  var dbPtrs = new Map(), dbPinch = null, dbSw = null;
+  function dbRecordFit() {
+    var wrap = $('#dbBigWrap'), img = $('#dbBigImg');
+    if (!wrap || !img.naturalWidth) return;
+    dbFitW = wrap.clientWidth - 16;
+    if (dbFitW < 60) dbFitW = img.clientWidth || 240;
+  }
+  function dbApplyZoom() {
+    var img = $('#dbBigImg'); if (!img.naturalWidth) return;
+    var w = Math.round(dbFitW * dbZoom);
+    img.style.width = w + 'px'; img.style.height = 'auto';
+    $('#dbZoomVal').textContent = Math.round(dbZoom * 100) + '%';
+    dbFitDraw();
+  }
+  $('#dbZoomIn').onclick = function () { dbZoom = Math.min(6, dbZoom * 1.25); dbApplyZoom(); };
+  $('#dbZoomOut').onclick = function () { dbZoom = Math.max(DB_ZOOM_MIN, dbZoom / 1.25); dbApplyZoom(); };
+  $('#dbZoomFit').onclick = function () { dbZoom = 1; dbApplyZoom(); };
+  $('#dbBigWrap').addEventListener('wheel', function (e) {
+    if (!dbImg || dbBrushLock) { if (dbBrushLock) e.preventDefault(); return; }
+    e.preventDefault();
+    dbZoom = Math.min(6, Math.max(DB_ZOOM_MIN, dbZoom * (e.deltaY < 0 ? 1.12 : 1 / 1.12)));
+    dbApplyZoom();
+  }, { passive: false });
+  // 双指缩放 + 平移（移动端）；单指仍用于涂抹
+  $('#dbBigWrap').addEventListener('pointerdown', function (e) {
+    if (dbBrushLock) return;                       // 锁定后画面不动，事件交给涂抹层
+    dbPtrs.set(e.pointerId, e);
+    if (dbPtrs.size === 1 && dbMode === 'manual' && !dbBrushLock && dbGallery.length > 1)
+      dbSw = { x: e.clientX, y: e.clientY, t: Date.now() };
+  });
+  $('#dbBigWrap').addEventListener('pointermove', function (e) {
+    if (!dbPtrs.has(e.pointerId)) return;
+    dbPtrs.set(e.pointerId, e);
+    if (dbBrushLock) return;
+    if (dbPtrs.size === 2) {
+      dbGesturing = true;
+      var p = Array.from(dbPtrs.values());
+      var d = Math.hypot(p[0].clientX - p[1].clientX, p[0].clientY - p[1].clientY);
+      var mx = (p[0].clientX + p[1].clientX) / 2, my = (p[0].clientY + p[1].clientY) / 2;
+      var wrap = $('#dbBigWrap');
+      if (dbPinch) {
+        dbZoom = Math.min(6, Math.max(DB_ZOOM_MIN, dbZoom * (d / dbPinch.d)));
+        wrap.scrollLeft = dbPinch.sl - (mx - dbPinch.mx);
+        wrap.scrollTop = dbPinch.st - (my - dbPinch.my);
+        dbApplyZoom();
+      }
+      dbPinch = { d: d, mx: mx, my: my, sl: wrap.scrollLeft, st: wrap.scrollTop };
+    }
+  });
+  function dbPtrEnd(e) {
+    dbPtrs.delete(e.pointerId);
+    if (dbPtrs.size < 2) { dbPinch = null; setTimeout(function () { dbGesturing = false; }, 60); }
+    // 单指横滑切换图片（手动未锁定 + 多图）
+    if (dbSw && dbPtrs.size === 0) {
+      var dx = e.clientX - dbSw.x, dy = e.clientY - dbSw.y, dt = Date.now() - dbSw.t;
+      if (Math.abs(dx) > 60 && dt < 500 && Math.abs(dx) > Math.abs(dy))
+        dbLoadSlot(dx < 0 ? dbGalleryIdx + 1 : dbGalleryIdx - 1);
+      dbSw = null;
+    }
+  }
+  $('#dbBigWrap').addEventListener('pointerup', dbPtrEnd);
+  $('#dbBigWrap').addEventListener('pointercancel', dbPtrEnd);
+  window.addEventListener('resize', function () { if (dbImg) { dbRecordFit(); dbApplyZoom(); } });
 
   // 模式切换
   document.querySelectorAll('#dbSeg button').forEach(function (b) {
@@ -1295,13 +1425,13 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
       $('#dbManualHint').classList.toggle('hidden', dbMode !== 'manual');
       $('#dbRegionToggle').style.display = (dbMode === 'auto') ? 'inline-block' : 'none';
       $('#dbConfirm').classList.add('hidden');
-      $('#dbPrimary').textContent = (dbMode === 'auto') ? '🔍 识别条带'
-        : (dbMode === 'manual') ? '🚀 发送到电脑消除' : '✂️ 裁剪黑边';
-      if (dbMode === 'manual' && dbImg) { $('#dbDraw').classList.remove('hidden'); dbFitDraw(); }
-      else if (dbMode !== 'manual') { $('#dbDraw').classList.add('hidden'); dbResetMask(); }
-      dbStatusMsg(dbMode === 'auto' ? '自动识别：点「识别条带」先做半透明蒙版预览，确认后再消除。'
-        : dbMode === 'manual' ? '手动消除：在图上涂白要去掉的区域，点「发送」。'
-        : '离线裁剪黑边：点「裁剪黑边」直接处理。');
+      $('#dbPrimary').textContent = (dbMode === 'auto') ? '🔍 识别条带' : '🚀 本地消除';
+      $('#dbModelRow').classList.toggle('hidden', dbMode !== 'manual');
+      dbBrushLock = false; $('#dbBrushLock').classList.remove('lock-on');
+      if (dbMode === 'manual' && dbImg && dbBrushLock) { $('#dbDraw').classList.remove('hidden'); dbFitDraw(); }
+      else if (dbMode !== 'auto') { $('#dbDraw').classList.add('hidden'); if (dbMode === 'manual') dbHideOverlay(); else dbResetMask(); }
+      dbStatusMsg(dbMode === 'auto' ? '自动识别：点「识别条带」先做半透明蒙版预览，确认后再消除（全程本地）。'
+        : '手动消除：先双指缩放定位 → 点「🔒笔刷」锁定画面 → 单指涂抹 → 点「🚀 本地消除」（本地 Mi-GAN）。');
     };
   });
   // 默认显隐
@@ -1317,11 +1447,26 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   // 笔刷大小
   $('#dbBrushSize').oninput = function (e) { dbBrush = parseInt(e.target.value) || 34; $('#dbBrushVal').textContent = dbBrush; };
   $('#dbBrushClear').onclick = function () { dbResetMask(); };
+  // 🔒笔刷：锁定画面（禁用缩放/平移），单指涂抹
+  $('#dbBrushLock').onclick = function () {
+    if (!dbImg) return toast('先选一张图片');
+    dbBrushLock = !dbBrushLock;
+    this.classList.toggle('lock-on', dbBrushLock);
+    if (dbBrushLock) {
+      $('#dbDraw').classList.remove('hidden'); dbFitDraw(); dbRedrawOverlay();
+      dbStatusMsg('已锁定画面，单指涂抹（双指缩放已停用）。涂完点「🚀 本地消除」。');
+    } else {
+      dbHideOverlay();
+      dbStatusMsg('已解锁，可双指缩放/平移重新定位。');
+    }
+  };
+  $('#dbPrev').onclick = function () { dbLoadSlot(dbGalleryIdx - 1); };
+  $('#dbNext').onclick = function () { dbLoadSlot(dbGalleryIdx + 1); };
   // 圈选范围（自动模式）
   $('#dbRegionToggle').onclick = function () {
     if (!dbImg) { toast('先选一张图片'); return; }
     dbRegionOn = !dbRegionOn;
-    this.textContent = '✏️ 圈选范围：' + (dbRegionOn ? '开' : '关');
+    this.textContent = '🔴 圈选范围(红笔刷)：' + (dbRegionOn ? '开' : '关');
     if (dbRegionOn) { $('#dbDraw').classList.remove('hidden'); dbFitDraw(); dbMaskCanvas = null; }
     else { dbRegionStrokes = []; $('#dbDraw').classList.add('hidden'); dbResetMask(); }
   };
@@ -1333,12 +1478,14 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
              px: e.clientX - r.left, py: e.clientY - r.top };
   }
   $('#dbDraw').addEventListener('pointerdown', function (e) {
-    if (dbMode === 'manual') { if (!dbImg) return; e.preventDefault(); dbDrawing = true; dbLast = null; dbDot(e); }
-    else if (dbMode === 'auto' && dbRegionOn) { e.preventDefault(); dbDrawing = true; dbRegionCur = []; dbRegionStrokes.push(dbRegionCur); }
+    if (dbGesturing || dbPtrs.size >= 2) return;   // 双指手势中：只平移，不落笔
+    if (dbMode === 'manual') { if (!dbBrushLock) return; if (!dbImg) return; e.preventDefault(); dbDrawing = true; dbLast = null; dbDot(e); }
+    else if (dbMode === 'auto' && dbRegionOn) { e.preventDefault(); dbDrawing = true; dbRegionCur = [dbXY(e)]; dbRegionStrokes.push(dbRegionCur); dbRedrawOverlay(); }
   });
   $('#dbDraw').addEventListener('pointermove', function (e) {
-    if (dbMode === 'manual') { if (!dbDrawing) return; e.preventDefault(); dbStroke(e); }
-    else if (dbMode === 'auto' && dbRegionOn && dbDrawing) { e.preventDefault(); dbRegionCur.push(dbXY(e)); }
+    if (dbGesturing || dbPtrs.size >= 2) return;   // 双指手势中：不涂抹
+    if (dbMode === 'manual') { if (!dbBrushLock || !dbDrawing) return; e.preventDefault(); dbStroke(e); }
+    else if (dbMode === 'auto' && dbRegionOn && dbDrawing) { e.preventDefault(); dbRegionCur.push(dbXY(e)); dbRedrawOverlay(); }
   });
   $('#dbDraw').addEventListener('pointerup', function () { dbDrawing = false; dbLast = null; });
   $('#dbDraw').addEventListener('pointerleave', function () { dbDrawing = false; dbLast = null; });
@@ -1363,8 +1510,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   // 主操作按钮
   $('#dbPrimary').onclick = function () {
     if (dbMode === 'auto') dbDetect();
-    else if (dbMode === 'manual') dbManualSend();
-    else dbCrop();
+    else if (dbMode === 'manual') dbManualLocal();
   };
   $('#dbConfirm').onclick = dbConfirm;
   $('#dbReset').onclick = dbReset;
@@ -1381,74 +1527,248 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     }
   };
 
-  // —— 自动识别：preview -> confirm ——
-  function dbRegionPx() {
-    return dbRegionStrokes.map(function (poly) {
-      return poly.map(function (p) { return [Math.round(p.x * dbImg.naturalWidth), Math.round(p.y * dbImg.naturalHeight)]; });
+  // —— 自动识别（手机本地，不连电脑）——
+  // 核心：luma→背景直方图峰值(背景色)→暗/亮掩膜→连通分量
+  //      → 面积法：保留「与背景不同、且面积够大」的连通区域(实心黑条)，按面积天然排除细笔线/网点
+  function dbCC(fg, W, H) {
+    var labels = new Int32Array(W * H), comps = [], cur = 0;
+    for (var s = 0; s < W * H; s++) {
+      if (fg[s] && !labels[s]) {
+        cur++; var stack = [s]; labels[s] = cur;
+        var area = 0, minX = W, minY = H, maxX = -1, maxY = -1;
+        while (stack.length) {
+          var p = stack.pop(); area++;
+          var x = p % W, y = (p / W) | 0;
+          if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y;
+          if (x > 0 && fg[p - 1] && !labels[p - 1]) { labels[p - 1] = cur; stack.push(p - 1); }
+          if (x < W - 1 && fg[p + 1] && !labels[p + 1]) { labels[p + 1] = cur; stack.push(p + 1); }
+          if (y > 0 && fg[p - W] && !labels[p - W]) { labels[p - W] = cur; stack.push(p - W); }
+          if (y < H - 1 && fg[p + W] && !labels[p + W]) { labels[p + W] = cur; stack.push(p + W); }
+        }
+        comps.push({ id: cur, area: area, minX: minX, maxX: maxX, minY: minY, maxY: maxY, maxDt: 0, keep: false });
+      }
+    }
+    return { labels: labels, comps: comps };
+  }
+  function dbDetectBands(rgba, W, H, opt) {
+    opt = opt || {};
+    var delta = opt.delta != null ? opt.delta : 70;
+    // 面积法：用面积把细笔线（总面积小）与实心黑条（总面积大）分开，无需厚度阈值
+    var minAreaFrac = opt.minAreaFrac != null ? opt.minAreaFrac : 0.004;
+    var useLight = opt.useLight !== false;
+    var region = opt.region || null;
+    var L = new Float32Array(W * H);
+    for (var i = 0, p = 0; i < W * H; i++, p += 4) L[i] = 0.299 * rgba[p] + 0.587 * rgba[p + 1] + 0.114 * rgba[p + 2];
+    var bins = new Int32Array(64);
+    for (var i = 0; i < W * H; i++) { var b = (L[i] / 4) | 0; if (b > 63) b = 63; bins[b]++; }
+    var bb = 0, bc = -1; for (var k = 0; k < 64; k++) if (bins[k] > bc) { bc = bins[k]; bb = k; }
+    var bg = (bb + 0.5) / 64 * 256;
+    var dark = new Uint8Array(W * H), light = new Uint8Array(W * H), mask = new Uint8Array(W * H);
+    for (var i = 0; i < W * H; i++) {
+      if (L[i] < bg - delta) dark[i] = 1;
+      else if (useLight && L[i] > bg + delta) light[i] = 1;
+    }
+    function proc(fg) {
+      if (region) for (var i = 0; i < W * H; i++) if (!region[i]) fg[i] = 0;
+      var cc = dbCC(fg, W, H), total = W * H, kept = 0;
+      for (var k = 0; k < cc.comps.length; k++) {
+        var c = cc.comps[k];
+        // ① 背景色找出「和背景不同的最大那块连通区域」；② 面积天然区分细笔线(小)与实心黑条(大)
+        c.keep = c.area >= minAreaFrac * total &&
+                 !(c.area > 0.30 * total && (c.maxX - c.minX) > 0.5 * W && (c.maxY - c.minY) > 0.5 * H);
+        if (c.keep) kept++;
+      }
+      for (var i = 0; i < W * H; i++) if (fg[i] && cc.comps[cc.labels[i] - 1].keep) mask[i] = 1;
+      return kept;
+    }
+    var nd = proc(dark), nl = useLight ? proc(light) : 0;
+    return { mask: mask, dark: nd, light: nl };
+  }
+  function dbRasterizeStrokes(strokes, w, h) {
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    var cx = c.getContext('2d'); cx.strokeStyle = '#fff'; cx.lineWidth = Math.max(6, Math.round(0.05 * Math.min(w, h)));
+    cx.lineCap = 'round'; cx.lineJoin = 'round';
+    strokes.forEach(function (stk) {
+      if (!stk.length) return;
+      cx.beginPath();
+      stk.forEach(function (pt, i) { var x = pt.x * w, y = pt.y * h; if (i === 0) cx.moveTo(x, y); else cx.lineTo(x, y); });
+      if (stk.length === 1) cx.arc(stk[0].x * w, stk[0].y * h, cx.lineWidth / 2, 0, 7);
+      cx.stroke();
     });
+    var d = cx.getImageData(0, 0, w, h).data, m = new Uint8Array(w * h);
+    for (var i = 0, p = 3; i < w * h; i++, p += 4) m[i] = d[p] > 10 ? 1 : 0;
+    return m;
   }
   function dbDetect() {
     if (!dbImg) return toast('先选一张图片');
-    if (!dbStudioBase) return toast('请先填电脑IP并「连接测试」');
-    dbStatusMsg('识别中…');
-    var body = { image_b64: dbImg.src, preview: true, delta: parseInt($('#dbDelta').value) || 45, slant: true, min_h: 8 };
-    if (dbRegionOn && dbRegionStrokes.length) { body.region = dbRegionPx(); body.brush = 20; }
-    dbApi('/api/deband/auto', body).then(function (j) {
-      if (j.error) { dbStatusMsg('识别失败：' + j.error); return; }
-      if (j.ok === false) { dbStatusMsg('没识别出条带（可调低阈值或开「圈选范围」限定）'); $('#dbBigImg').src = dbImg.src; return; }
-      dbPreviewB64 = j.result_b64;
-      $('#dbBigImg').src = dbPreviewB64;     // 半透明蒙版叠加预览
+    var delta = parseInt($('#dbDelta').value) || 70;
+    var iw = dbImg.naturalWidth, ih = dbImg.naturalHeight;
+    var scale = Math.min(1, 1600 / Math.max(iw, ih));
+    var dw = Math.max(1, Math.round(iw * scale)), dh = Math.max(1, Math.round(ih * scale));
+    var c = document.createElement('canvas'); c.width = dw; c.height = dh;
+    var cx = c.getContext('2d', { willReadFrequently: true }); cx.drawImage(dbImg, 0, 0, dw, dh);
+    var rgba = cx.getImageData(0, 0, dw, dh).data;
+    var region = (dbRegionOn && dbRegionStrokes.length) ? dbRasterizeStrokes(dbRegionStrokes, dw, dh) : null;
+    dbStatusMsg('本地识别中…');
+    setTimeout(function () {
+      var r = dbDetectBands(rgba, dw, dh, { delta: delta, region: region });
+      if (r.dark + r.light === 0) {
+        dbPreviewB64 = null;
+        dbStatusMsg('没识别出条带（可调低阈值，或开「圈选范围」限定区域）');
+        $('#dbBigImg').src = dbImg.src; $('#dbDraw').classList.add('hidden'); $('#dbConfirm').classList.add('hidden');
+        return;
+      }
+      var mc = document.createElement('canvas'); mc.width = iw; mc.height = ih;
+      var tmp = document.createElement('canvas'); tmp.width = dw; tmp.height = dh;
+      var tctx = tmp.getContext('2d'); var id = tctx.createImageData(dw, dh);
+      for (var i = 0; i < dw * dh; i++) { var v = r.mask[i] ? 255 : 0; id.data[i * 4] = v; id.data[i * 4 + 1] = v; id.data[i * 4 + 2] = v; id.data[i * 4 + 3] = 255; }
+      tctx.putImageData(id, 0, 0);
+      var mctx = mc.getContext('2d'); mctx.imageSmoothingEnabled = false; mctx.drawImage(tmp, 0, 0, iw, ih);
+      dbMaskCanvas = mc;
+      dbPreviewB64 = true;
+      $('#dbDraw').classList.remove('hidden'); dbFitDraw(); dbRedrawOverlay();
       $('#dbConfirm').classList.remove('hidden');
-      dbStatusMsg('已标出识别区域（半透明蒙版）。确认无误点「确认消除」。条数：' + ((j.bands && j.bands.length) || 0));
-    }).catch(function () { dbStatusMsg('请求失败：检查电脑连接 / 工作室是否运行'); });
+      dbStatusMsg('已标出识别区域（半透明蒙版）。确认无误点「确认消除」。暗条带 ' + r.dark + ' / 亮条带 ' + r.light);
+    }, 20);
   }
   function dbConfirm() {
-    if (!dbImg || !dbPreviewB64) return;
-    if (!dbStudioBase) return toast('未连接电脑');
-    dbStatusMsg('消除中…');
-    var body = { image_b64: dbImg.src, preview: false, delta: parseInt($('#dbDelta').value) || 45, slant: true, min_h: 8 };
-    if (dbRegionOn && dbRegionStrokes.length) { body.region = dbRegionPx(); body.brush = 20; }
-    dbApi('/api/deband/auto', body).then(function (j) {
-      if (j.error) { dbStatusMsg('消除失败：' + j.error); return; }
-      dbResultB64 = j.result_b64;
-      $('#dbBigImg').src = dbResultB64;
-      dbShowResult(dbResultB64);
-      dbStatusMsg('消除完成。可「写回/导出」。');
-    }).catch(function () { dbStatusMsg('请求失败'); });
+    if (!dbImg || !dbMaskCanvas) return;
+    dbManualLocal();   // 复用本地 Mi-GAN 消除（读 dbImg + dbMaskCanvas）
   }
 
-  // —— 手动消除：iopaint inpaint ——
-  function ensureIopaint(cb) {
-    fetch(dbStudioBase + '/api/iopaint/status').then(function (r) { return r.json(); }).then(function (j) {
-      if (j.running) return cb(true);
-      fetch(dbStudioBase + '/api/iopaint/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-      var n = 0;
-      var t = setInterval(function () {
-        n++;
-        fetch(dbStudioBase + '/api/iopaint/status').then(function (r) { return r.json(); }).then(function (k) {
-          if (k.running || n > 20) { clearInterval(t); cb(k.running); }
-        }).catch(function () { if (n > 20) { clearInterval(t); cb(false); } });
-      }, 3000);
-    }).catch(function () { cb(false); });
+  // —— 手动消除：本地 Mi-GAN ONNX（onnxruntime-web，不连电脑）——
+  var dbOrtSession = null, dbOrtLoading = null, dbModelReady = false;
+  function dbLoadModel() {
+    if (dbOrtSession) return Promise.resolve(dbOrtSession);
+    if (dbOrtLoading) return dbOrtLoading;
+    dbOrtLoading = (async function () {
+      if (typeof ort === 'undefined') throw new Error('运行时未加载（缺少 vendor/ort/ort.min.js）');
+      ort.env.wasm.wasmPaths = 'vendor/ort/';
+      ort.env.wasm.numThreads = 1;   // 保守：单线程最稳（Android WebView file:// 下 worker 易失败）；WebView 支持时可调大
+      ort.env.wasm.simd = true;
+      try { ort.env.wasm.proxy = false; } catch (e) {}  // 主线程跑，避免 file:// 下 Worker 创建失败（手机 WebView）
+      dbStatusMsg('加载本地模型 Mi-GAN（约 27MB）…');
+      dbOrtSession = await ort.InferenceSession.create('vendor/models/migan_512.onnx', { executionProviders: ['wasm'] });
+      dbModelReady = true;
+      if ($('#dbModelDot')) $('#dbModelDot').className = 'db-dot on';
+      if ($('#dbModelTxt')) $('#dbModelTxt').textContent = '本地模型已就绪 · Mi-GAN';
+      dbStatusMsg('本地模型已就绪（Mi-GAN）。涂白区域后点「🚀 本地消除」。');
+      return dbOrtSession;
+    })();
+    return dbOrtLoading;
   }
-  function dbManualSend() {
+  if ($('#dbLoadModel')) $('#dbLoadModel').onclick = function () {
+    dbLoadModel().catch(function (e) {
+      dbStatusMsg('模型加载失败：' + (e && e.message ? e.message : e) + (location.protocol === 'file:' ? '（当前是 file://，请用 http://localhost:8778/ 打开）' : ''));
+      toast('模型加载失败：' + (e && e.message ? e.message : e));
+    });
+  };
+  // file:// 直接双击打开时浏览器会拦截 wasm/模型 fetch，给明确提示
+  if (location.protocol === 'file:') {
+    dbStatusMsg('⚠ 当前是 file:// 直接打开，模型(wasm)无法加载。「识别预览」能用，但「消除」需改用本地服务器：http://localhost:8778/ （我这边的 python 服务已起好）');
+  }
+  // 运行时若已就绪（vendor 存在且经 HTTP 加载），后台预加载 Mi-GAN，
+  // 避免点「确认消除 / 本地消除」时才干等；file:// 缺 vendor 时 ort 为 undefined，自动跳过。
+  if (typeof ort !== 'undefined') {
+    dbLoadModel().then(function () {}).catch(function () {});
+  }
+
+  function dbManualLocal() {
     if (!dbImg) return toast('先选一张图片');
     if (!dbMaskCanvas) return toast('先在图上涂白要消除的区域');
-    if (!dbStudioBase) return toast('请先填电脑IP并「连接测试」');
-    dbStatusMsg('启动 iopaint 并发送中…');
-    ensureIopaint(function (ok) {
-      if (!ok) { dbStatusMsg('iopaint 启动失败，检查电脑工作室'); return; }
-      var maskB64 = dbMaskCanvas.toDataURL('image/png');
-      fetch(dbIopaintBase + '/api/v1/inpaint', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: dbImg.src, mask: maskB64 })
-      }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.blob(); })
-        .then(function (blob) {
-          var rd = new FileReader();
-          rd.onload = function () { dbResultB64 = rd.result; $('#dbBigImg').src = dbResultB64; dbShowResult(dbResultB64); dbStatusMsg('消除完成。可「写回/导出」。'); };
-          rd.readAsDataURL(blob);
-        })
-        .catch(function (e) { dbStatusMsg('消除失败：' + e.message + '（iopaint 需电脑端 LaMa 就绪）'); });
+    dbStatusMsg('加载本地模型…');
+    dbLoadModel().then(function (sess) {
+      dbStatusMsg('本地 AI 修复中…');
+      return miganInpaint(dbImg, dbMaskCanvas, sess);
+    }).then(function (canvas) {
+      dbResultCanvas = canvas;
+      $('#dbBigImg').src = canvas.toDataURL('image/png');
+      $('#dbDownload').style.display = 'inline-block';
+      $('#dbDraw').classList.add('hidden'); $('#dbConfirm').classList.add('hidden');
+      dbResetMask();
+      // 消除完成：清掉自动模式的红色圈选约束，红蒙版不再残留；结果写入当前画廊槽
+      dbRegionOn = false; dbRegionStrokes = [];
+      var rt = $('#dbRegionToggle'); if (rt) rt.textContent = '🔴 圈选范围(红笔刷)：关';
+      dbSaveSlot();
+      dbStatusMsg('✅ 本地消除完成，已生成去条带图。可「写回/导出」，或 ◀▶ 切下一张。');
+    }).catch(function (e) {
+      dbStatusMsg('❌ 消除失败：' + (e && e.message ? e.message : e) + (location.protocol === 'file:' ? '（当前是 file://，请用 http://localhost:8778/ 打开）' : ''));
+      toast('消除失败：' + (e && e.message ? e.message : e));
+    });
+  }
+
+  // ImageData -> 临时 canvas（用于 drawImage 缩放）
+  function mkCanvasFrom(imgData, w, h) {
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    c.getContext('2d').putImageData(imgData, 0, 0);
+    return c;
+  }
+  // 本地修复核心：裁出遮罩 bbox(含 128 边距) → 缩放到 512 → Mi-GAN → 贴回
+  function miganInpaint(img, maskCanvas, sess) {
+    return new Promise(function (resolve, reject) {
+      try {
+        var iw = img.naturalWidth, ih = img.naturalHeight;
+        var ictx = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+        ictx.canvas.width = iw; ictx.canvas.height = ih; ictx.drawImage(img, 0, 0);
+        var mctx = maskCanvas.getContext('2d', { willReadFrequently: true });
+        var idata = ictx.getImageData(0, 0, iw, ih).data;
+        var mdata = mctx.getImageData(0, 0, iw, ih).data;
+        // 遮罩 bbox
+        var minx = iw, miny = ih, maxx = -1, maxy = -1;
+        for (var y = 0; y < ih; y++) { for (var x = 0; x < iw; x++) { if (mdata[(y * iw + x) * 4] > 127) { if (x < minx) minx = x; if (x > maxx) maxx = x; if (y < miny) miny = y; if (y > maxy) maxy = y; } } }
+        if (maxx < 0) { reject(new Error('遮罩为空')); return; }
+        var margin = 128;
+        minx = Math.max(0, minx - margin); miny = Math.max(0, miny - margin);
+        maxx = Math.min(iw - 1, maxx + margin); maxy = Math.min(ih - 1, maxy + margin);
+        var cw = maxx - minx + 1, ch = maxy - miny + 1;
+        var cropImg = ictx.getImageData(minx, miny, cw, ch);
+        var cropMask = mctx.getImageData(minx, miny, cw, ch);
+        // 缩放：最长边 <= 512
+        var scale = Math.min(1, 512 / Math.max(cw, ch));
+        var rw = Math.max(1, Math.round(cw * scale)), rh = Math.max(1, Math.round(ch * scale));
+        var rc = document.createElement('canvas'); rc.width = rw; rc.height = rh;
+        var rcMask = document.createElement('canvas'); rcMask.width = rw; rcMask.height = rh;
+        rc.getContext('2d').drawImage(mkCanvasFrom(cropImg, cw, ch), 0, 0, cw, ch, 0, 0, rw, rh);
+        rcMask.getContext('2d').drawImage(mkCanvasFrom(cropMask, cw, ch), 0, 0, cw, ch, 0, 0, rw, rh);
+        // 居中 pad 到 512 方块
+        var PH = 512, PW = 512, ox = Math.floor((PW - rw) / 2), oy = Math.floor((PH - rh) / 2);
+        var pad = document.createElement('canvas'); pad.width = PW; pad.height = PH; pad.getContext('2d').drawImage(rc, ox, oy);
+        var padMask = document.createElement('canvas'); padMask.width = PW; padMask.height = PH; padMask.getContext('2d').drawImage(rcMask, ox, oy);
+        // 组装 4 通道输入 [1,4,512,512]：ch0=0.5-mask，ch1..3=img*2-1 再乘 (1-mask)
+        var pid = pad.getContext('2d').getImageData(0, 0, PW, PH).data;
+        var pmd = padMask.getContext('2d').getImageData(0, 0, PW, PH).data;
+        var H = PH, W = PW, N = H * W, inp = new Float32Array(4 * N);
+        for (var p = 0; p < N; p++) {
+          var pi = p * 4, r = pid[pi] / 255, g = pid[pi + 1] / 255, b = pid[pi + 2] / 255;
+          var m = pmd[pi] / 255 > 0.5 ? 1 : 0;
+          inp[p] = 0.5 - m;
+          inp[N + p] = (r * 2 - 1) * (1 - m);
+          inp[2 * N + p] = (g * 2 - 1) * (1 - m);
+          inp[3 * N + p] = (b * 2 - 1) * (1 - m);
+        }
+        // 推理（用模型真实 IO 名，避免硬编码 input/output 不匹配）
+        var inName = sess.inputNames && sess.inputNames[0] ? sess.inputNames[0] : 'input';
+        var outName = sess.outputNames && sess.outputNames[0] ? sess.outputNames[0] : 'output';
+        var tensor = new ort.Tensor('float32', inp, [1, 4, H, W]);
+        var feeds = {}; feeds[inName] = tensor;
+        sess.run(feeds).then(function (res) {
+          var o = res[outName].data; // [-1,1]
+          var outC = document.createElement('canvas'); outC.width = W; outC.height = H;
+          var octx = outC.getContext('2d'), oimg = octx.createImageData(W, H);
+          for (var q = 0; q < N; q++) { for (var c = 0; c < 3; c++) { var v = o[c * N + q] * 127.5 + 127.5; v = v < 0 ? 0 : v > 255 ? 255 : v; oimg.data[q * 4 + c] = v | 0; } oimg.data[q * 4 + 3] = 255; }
+          octx.putImageData(oimg, 0, 0);
+          // 取内部 (rw×rh) 还原到裁块尺寸
+          var resCrop = document.createElement('canvas'); resCrop.width = cw; resCrop.height = ch;
+          resCrop.getContext('2d').drawImage(outC, ox, oy, rw, rh, 0, 0, cw, ch);
+          var rcImg = resCrop.getContext('2d').getImageData(0, 0, cw, ch).data;
+          var finalC = document.createElement('canvas'); finalC.width = iw; finalC.height = ih;
+          var fctx = finalC.getContext('2d'); fctx.drawImage(ictx.canvas, 0, 0);
+          var fd = fctx.getImageData(0, 0, iw, ih), fd2 = fd.data, cmd = cropMask.data;
+          for (var yy = 0; yy < ch; yy++) { for (var xx = 0; xx < cw; xx++) { var cp = (yy * cw + xx) * 4; if (cmd[cp] > 127) { var fp = ((miny + yy) * iw + (minx + xx)) * 4; fd2[fp] = rcImg[cp]; fd2[fp + 1] = rcImg[cp + 1]; fd2[fp + 2] = rcImg[cp + 2]; } } }
+          fctx.putImageData(fd, 0, 0);
+          resolve(finalC);
+        }).catch(reject);
+      } catch (e) { reject(e); }
     });
   }
   function dbShowResult(b64) {
@@ -1461,34 +1781,6 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     im.src = b64;
   }
 
-  // —— 离线裁剪黑边（无需电脑）——
-  function cropBlackBorders(img) {
-    var c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
-    var x = c.getContext('2d'); x.drawImage(img, 0, 0);
-    var W = c.width, H = c.height, d = x.getImageData(0, 0, W, H), a = d.data;
-    function lum(i) { return (a[i] + a[i + 1] + a[i + 2]) / 3; }
-    function rowBlack(y) { for (var xx = 0; xx < W; xx++) { if (lum((y * W + xx) * 4) > 10) return false; } return true; }
-    function colBlack(xx) { for (var y = 0; y < H; y++) { if (lum((y * W + xx) * 4) > 10) return false; } return true; }
-    var top = 0, bottom = H - 1, left = 0, right = W - 1;
-    while (top <= bottom && rowBlack(top)) top++;
-    while (bottom > top && rowBlack(bottom)) bottom--;
-    while (left <= right && colBlack(left)) left++;
-    while (right > left && colBlack(right)) right--;
-    if (right - left < 10 || bottom - top < 10) return c;
-    var nc = document.createElement('canvas'); nc.width = right - left + 1; nc.height = bottom - top + 1;
-    nc.getContext('2d').drawImage(c, left, top, nc.width, nc.height, 0, 0, nc.width, nc.height);
-    return nc;
-  }
-  function dbCrop() {
-    if (!dbImg) return toast('先选一张图片');
-    dbStatusMsg('裁剪中…');
-    setTimeout(function () {
-      var c = cropBlackBorders(dbImg);
-      dbResultCanvas = c; dbResultB64 = c.toDataURL('image/png');
-      $('#dbBigImg').src = dbResultB64; $('#dbDownload').style.display = 'inline-block';
-      dbStatusMsg('已裁剪黑边（' + c.width + '×' + c.height + '）。可「写回/导出」。');
-    }, 30);
-  }
 
   /* ===== FleshOut + 本地模板管理 ===== */
   document.querySelectorAll('#flSeg button').forEach(function (b) {
@@ -1637,6 +1929,9 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     fmRender();
     window.onNativePermissionResult = function () { renderComic(NB_PATH); fmRender(); };
   } else {
+    // 网页模式：没有原生"文件夹"，改用浏览器文件选择
+    $('#dbBrowse').style.display = 'none';
+    $('#dbPick').style.display = 'inline-block';
     loadTemplates(); renderTemplates();
   }
 })();
