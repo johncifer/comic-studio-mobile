@@ -157,7 +157,6 @@ textarea.inp{width:100%;background:var(--panel);color:var(--txt);border:1px soli
 .db-compare .lbl{font-size:11px;color:var(--sub);padding:6px 8px;}
 .db-compare img{width:100%;display:block;background:#000;}
 .db-stage{position:relative;line-height:0;}
-.db-stage #dbMask, .db-stage #dbOverlay{position:absolute;left:0;top:0;width:100%;height:100%;touch-action:none;}
 .db-brush{display:flex;gap:8px;align-items:center;margin:10px 0;}
 .db-brush .btn.small{flex:0 0 auto;}
 .db-brush input[type=range]{flex:1;}
@@ -168,6 +167,29 @@ textarea.inp{width:100%;background:var(--panel);color:var(--txt);border:1px soli
 .seg button.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
 .db-legend{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0;font-size:11.5px;color:var(--sub);}
 .db-legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px;}
+
+/* 去黑条 · 导演台式大预览 + 新模式控件 */
+.db-pc{display:flex;gap:8px;align-items:center;margin:10px 0;flex-wrap:wrap;}
+.db-pc input{flex:1;min-width:130px;background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:11px;padding:9px 11px;font-size:13px;}
+.db-dot{width:9px;height:9px;border-radius:50%;background:#666;flex:0 0 auto;}
+.db-dot.on{background:#46d27a;box-shadow:0 0 8px #46d27a88;}
+.db-dot.off{background:#e06a6a;}
+.db-bigwrap{position:relative;background:#0c0e12;border:1px solid var(--line);border-radius:12px;padding:8px;margin:10px 0;}
+.db-bigbox{position:relative;display:inline-block;line-height:0;max-width:100%;border:1px solid var(--line);border-radius:7px;}
+.db-bigbox img{display:block;max-width:100%;width:100%;height:auto;background:#000;}
+.db-maskcanvas{position:absolute;left:0;top:0;width:100%;height:100%;touch-action:none;cursor:crosshair;}
+.db-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--sub);font-size:12.5px;line-height:1.6;padding:18px;pointer-events:none;}
+.db-empty.hide{display:none;}
+.db-rows{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0;}
+.db-rows.hidden,.db-row.hidden{display:none;}
+.db-row{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap;}
+.db-row label{font-size:12.5px;color:var(--sub);}
+.db-row input[type=range]{flex:1;min-width:120px;}
+.db-row .val{font-size:12.5px;color:var(--txt);min-width:22px;text-align:right;}
+.db-hint{font-size:11.5px;color:var(--sub);margin-top:4px;line-height:1.5;}
+.db-act{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;}
+.db-act .btn{flex:1;min-width:120px;}
+
 
 /* flesh */
 .fl-out{margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px;
@@ -325,45 +347,63 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   <input id="dirFile" type="file" accept=".txt,.json,text/plain,application/json" hidden>
 </section>
 
-<!-- ===== 去黑条 ===== -->
+<!-- ===== 去黑条（iopaint 后端 · 手机版） ===== -->
 <section id="paneDeband" class="pane">
   <div class="pane-head">🧹 去黑条 / 去条带</div>
-  <p class="hint">笔刷圈出条带区域 → 「检测条带」自动识别黑/白/灰条（不同颜色叠加）→ 勾选要去除的类别 → 「确认并修复」按周围像素走势修补。</p>
+  <p class="hint">后端跑在电脑端的 iopaint（AI 修复）。先填电脑的局域网 IP 连接，再用「🤖自动识别」或「🖌手动消除」。预览图像导演台一样大。无网络时仍可用「✂️裁剪黑边」离线处理。</p>
+
+  <div class="db-pc">
+    <span class="db-dot" id="dbDot"></span>
+    <input class="inp" id="dbHost" placeholder="电脑局域网IP，如 192.168.1.50" inputmode="numeric">
+    <button class="btn small" id="dbTest">连接测试</button>
+  </div>
+
   <button class="pick alt" id="dbBrowse">📁 从文件夹选图片（作为项目）</button>
   <button class="pick" id="dbPick" style="display:none">🖼 选择单张图片</button>
   <input id="dbFile" type="file" accept="image/*" hidden>
+
   <div class="seg" id="dbSeg">
-    <button data-mode="crop">裁剪黑边</button>
-    <button data-mode="heal" class="active">去条带</button>
-    <button data-mode="both">两者都做</button>
+    <button data-mode="auto" class="active">🤖 自动识别</button>
+    <button data-mode="manual">🖌 手动消除</button>
+    <button data-mode="crop">✂️ 裁剪黑边</button>
   </div>
-  <div class="db-brush hidden" id="dbBrushRow">
-    <button class="btn small" id="dbBrushToggle">✏️ 笔刷圈选：关</button>
-    <input type="range" id="dbBrushSize" min="10" max="140" value="44">
-    <span id="dbBrushVal" class="sub">44</span>
+
+  <!-- 自动识别 专用 -->
+  <div class="db-row hidden" id="dbAutoRow">
+    <label>识别阈值</label>
+    <input type="range" id="dbDelta" min="5" max="140" value="45" step="5">
+    <span class="val" id="dbDeltaVal">45</span>
+    <button class="btn small" id="dbRegionToggle">✏️ 圈选范围：关</button>
+  </div>
+  <div class="db-hint hidden" id="dbAutoHint">阈值越高只认与背景反差大的块，排除小块反光/弱阴影。需要只查某块时开「圈选范围」涂出搜索区。</div>
+
+  <!-- 手动消除 专用 -->
+  <div class="db-row hidden" id="dbManualRow">
+    <label>笔刷</label>
+    <input type="range" id="dbBrushSize" min="8" max="120" value="34">
+    <span class="val" id="dbBrushVal">34</span>
     <button class="btn small" id="dbBrushClear">清除</button>
   </div>
-  <button class="btn accent2" id="dbDetect">🔍 检测条带</button>
-  <div class="db-cls hidden" id="dbClsRow">
-    <label><input type="checkbox" id="dbClsBlack" checked> 黑条</label>
-    <label><input type="checkbox" id="dbClsWhite" checked> 白条</label>
-    <label><input type="checkbox" id="dbClsGray" checked> 灰条</label>
+  <div class="db-hint hidden" id="dbManualHint">在图上把要消除的区域涂白（黑底），松手后点「🚀 发送到电脑消除」。可去任意瑕疵/文字/物体。</div>
+
+  <!-- 主操作 -->
+  <div class="db-act">
+    <button class="btn accent2" id="dbPrimary">🔍 识别条带</button>
+    <button class="btn primary hidden" id="dbConfirm">✅ 确认消除</button>
+    <button class="btn hidden" id="dbReset">↺ 重选</button>
   </div>
-  <div class="db-legend hidden" id="dbLegend">
-    <span><i style="background:rgba(255,60,90,.6)"></i>黑条</span>
-    <span><i style="background:rgba(70,150,255,.6)"></i>白条</span>
-    <span><i style="background:rgba(80,220,140,.6)"></i>灰条</span>
-    <span><i style="background:rgba(170,120,255,.5)"></i>笔刷区</span>
+
+  <!-- 导演台式大预览 -->
+  <div class="db-bigwrap" id="dbBigWrap">
+    <div class="db-bigbox" id="dbBigBox">
+      <img id="dbBigImg" alt="预览">
+      <canvas id="dbDraw" class="db-maskcanvas hidden"></canvas>
+    </div>
+    <div class="db-empty" id="dbEmpty">预览图位置<br><span class="muted">载入图片后在此大图预览（像导演台）</span></div>
   </div>
-  <div class="db-compare">
-    <figure><div class="lbl">原图（笔刷可圈选）</div>
-      <div class="db-stage"><img id="dbBefore"><canvas id="dbMask" class="hidden"></canvas><canvas id="dbOverlay" class="hidden"></canvas></div>
-    </figure>
-    <figure><div class="lbl">结果</div><img id="dbAfter"></figure>
-  </div>
-  <div class="row">
-    <button class="btn primary" id="dbRun">✅ 确认并修复</button>
-    <button class="btn" id="dbDownload" style="display:none">导出PNG</button>
+
+  <div class="db-act">
+    <button class="btn" id="dbDownload" style="display:none">💾 写回/导出</button>
   </div>
   <div id="dbStatus" class="sub"></div>
 </section>
@@ -622,7 +662,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     activeProject = p;
     switchPane(p.type);
     if (p.type === 'comic') renderComic(p.folder);
-    else if (p.type === 'deband') { if (p.files.length) loadDeband(p.files[0].path); else { $('#dbBefore').removeAttribute('src'); toast('该项目没有图片'); } }
+    else if (p.type === 'deband') { if (p.files.length) loadDeband(p.files[0].path); else { dbReset(); toast('该项目没有图片'); } }
     else if (p.type === 'director') { if (p.files.length) loadDirectorFile(p.files[0].path); else toast('该项目没有 json'); }
     else if (p.type === 'flesh') { if (p.files.length) loadFleshText(p.files[0].path); }
     renderProjects(); updateRailVisibility();
@@ -631,7 +671,7 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     var i = projects.indexOf(p); if (i >= 0) projects.splice(i, 1);
     if (activeProject === p) activeProject = null;
     if (p.type === 'comic') { $('#grid').innerHTML = ''; $('#comicHint').textContent = '项目已关闭。点 ☰ → 文件管理重新打开文件夹。'; }
-    else if (p.type === 'deband') { $('#dbBefore').removeAttribute('src'); $('#dbAfter').style.display = 'none'; dbImg = null; }
+    else if (p.type === 'deband') { dbReset(); }
     else if (p.type === 'director') { $('#dirLines').innerHTML = ''; $('#dirStrip').innerHTML = ''; $('#dirOverlay').innerHTML = ''; var im = $('#dirImg'); if (im) im.removeAttribute('src'); $('#dirEditorEmpty').classList.remove('hide'); $('#dirProj').classList.add('hidden'); }
     else if (p.type === 'flesh') { $('#flInput').value = ''; }
     renderProjects(); updateRailVisibility();
@@ -1157,10 +1197,50 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
   $('#dirAutoEmo').onclick = autoEmotion;
   $('#dirCleanTts').onclick = cleanText;
 
-  /* ===== 去黑条 v2（条带识别 + 智能修复） ===== */
-  var dbImg = null, dbMode = 'heal', dbResultCanvas = null, dbRawPath = null;
-  var dbBrushOn = false, dbBrush = 44, dbMaskImg = null, dbMasking = false;
-  var dbBars = null; // {cls:Int8Array, orient:Int8Array, w, h}
+  /* ===== 去黑条（iopaint 后端 · 手机版） ===== */
+  var dbImg = null, dbRawPath = null, dbResultCanvas = null;
+  var dbMode = 'auto';
+  var dbHost = localStorage.getItem('dbHost') || '';
+  var dbStudioBase = '', dbIopaintBase = '';
+  var dbMaskCanvas = null;          // 全分辨率遮罩（手动消除，白=消除）
+  var dbDrawOn = false, dbBrush = 34, dbDrawing = false, dbLast = null;
+  var dbRegionOn = false, dbRegionStrokes = [], dbRegionCur = null;
+  var dbPreviewB64 = null, dbResultB64 = null, dbDeltaT = null;
+
+  function dbSetBase(h) {
+    h = (h || '').trim().replace(/^https?:\/\//, '').replace(/\/+$/, '');
+    h = h.split(':')[0];           // 端口固定 8787/7900，只取 IP/主机
+    if (!h) return;
+    dbHost = h; localStorage.setItem('dbHost', h);
+    dbStudioBase = 'http://' + h + ':8787';
+    dbIopaintBase = 'http://' + h + ':7900';
+  }
+  function dbApi(path, body) {
+    return fetch(dbStudioBase + path, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function (r) { return r.json(); });
+  }
+  function dbStatusMsg(m) { var s = $('#dbStatus'); if (s) s.textContent = m || ''; }
+
+  // 连接测试（仅探测，不拉起 iopaint）
+  $('#dbTest').onclick = function () {
+    dbSetBase($('#dbHost').value);
+    if (!dbStudioBase) return toast('先填电脑局域网 IP');
+    dbStatusMsg('连接测试中…');
+    fetch(dbStudioBase + '/api/iopaint/status').then(function (r) { return r.json(); })
+      .then(function (j) {
+        $('#dbDot').className = 'db-dot on';
+        dbStatusMsg('已连接电脑（iopaint ' + (j.running ? '运行中' : '待启动') + '）');
+      })
+      .catch(function () {
+        $('#dbDot').className = 'db-dot off';
+        dbStatusMsg('连不上：检查电脑IP / 防火墙放行 8787·7900 / 工作室是否运行');
+      });
+  };
+  if (dbHost) dbSetBase(dbHost);
+
+  // 图片载入
   $('#dbBrowse').onclick = function () { if (NB) openDrawer(); else toast('网页模式请用「选择图片」'); };
   $('#dbPick').onclick = function () { $('#dbFile').click(); };
   $('#dbFile').onchange = function (e) {
@@ -1170,159 +1250,218 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     rd.readAsDataURL(f); e.target.value = '';
   };
   function setDb(im, raw) {
-    dbImg = im; dbRawPath = raw; dbBars = null;
-    $('#dbBefore').src = im.src; $('#dbAfter').style.display = 'none'; $('#dbDownload').style.display = 'none';
-    $('#dbOverlay').classList.add('hidden'); $('#dbClsRow').classList.add('hidden'); $('#dbLegend').classList.add('hidden');
-    dbMaskImg = null; dbBrushOn = false; $('#dbMask').classList.add('hidden'); $('#dbBrushToggle').textContent = '✏️ 笔刷圈选：关'; $('#dbBrushRow').classList.add('hidden');
-    $('#dbStatus').textContent = '已选图，可笔刷圈选条带后点「检测条带」';
+    dbImg = im; dbRawPath = raw; dbResultCanvas = null; dbPreviewB64 = null; dbResultB64 = null;
+    $('#dbBigImg').src = im.src;
+    $('#dbEmpty').classList.add('hide');
+    $('#dbDownload').style.display = 'none';
+    $('#dbConfirm').classList.add('hidden');
+    dbResetMask();
+    dbRegionStrokes = []; dbRegionOn = false; $('#dbRegionToggle').textContent = '✏️ 圈选范围：关';
+    dbStatusMsg('已选图。' + (dbMode === 'auto' ? '点「识别条带」' : '涂出要消除的区域后点「发送到电脑消除」'));
+    setTimeout(dbFitDraw, 50);
   }
   function loadDeband(path) {
     var im = new Image();
     im.onload = function () { setDb(im, path); };
     im.src = NB.readImageBase64(path, 1600);
   }
-  document.querySelectorAll('#dbSeg button').forEach(function (b) {
-    b.onclick = function () { document.querySelectorAll('#dbSeg button').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active'); dbMode = b.dataset.mode; $('#dbBrushRow').classList.toggle('hidden', dbMode === 'crop'); };
-  });
+  function dbReset() {
+    dbImg = null; dbResultCanvas = null; dbRawPath = null; dbPreviewB64 = null; dbResultB64 = null;
+    $('#dbBigImg').removeAttribute('src'); $('#dbEmpty').classList.remove('hide');
+    $('#dbDownload').style.display = 'none'; $('#dbConfirm').classList.add('hidden');
+    $('#dbStatus').textContent = ''; dbResetMask();
+  }
+  function dbResetMask() {
+    dbMaskCanvas = null; dbDrawing = false; dbLast = null;
+    var dc = $('#dbDraw'); dc.classList.add('hidden');
+    var c = dc.getContext('2d'); c.clearRect(0, 0, dc.width, dc.height);
+  }
+  function dbFitDraw() {
+    var dc = $('#dbDraw');
+    if (dc.classList.contains('hidden')) return;
+    var img = $('#dbBigImg');
+    if (!img.clientWidth) { requestAnimationFrame(dbFitDraw); return; }
+    dc.width = img.clientWidth; dc.height = img.clientHeight;
+  }
 
-  // 检测条带：识别黑/白/灰条，输出分类与方向
-  function detectBars(img, brushCanvas) {
-    var MAX = 1600, w = img.naturalWidth, h = img.naturalHeight;
-    var sc = Math.min(1, MAX / Math.max(w, h)); w = Math.round(w * sc); h = Math.round(h * sc);
-    var c = document.createElement('canvas'); c.width = w; c.height = h;
-    var x = c.getContext('2d'); x.drawImage(img, 0, 0, w, h);
-    var id = x.getImageData(0, 0, w, h), a = id.data;
-    var bm = null;
-    if (brushCanvas) { bm = brushCanvas.getContext('2d').getImageData(0, 0, brushCanvas.width, brushCanvas.height).data; }
-    function brushed(px, py) {
-      if (!bm) return true;
-      if (px >= brushCanvas.width) px = brushCanvas.width - 1;
-      if (py >= brushCanvas.height) py = brushCanvas.height - 1;
-      return bm[(py * brushCanvas.width + px) * 4 + 3] > 40;
-    }
-    var lum = new Float32Array(w * h);
-    for (var i = 0, p = 0; i < w * h; i++, p += 4) lum[i] = (a[p] + a[p + 1] + a[p + 2]) / 3;
-    var rowMean = new Float32Array(h), rowStd = new Float32Array(h);
-    for (var y = 0; y < h; y++) { var s = 0, s2 = 0; for (var xx = 0; xx < w; xx++) { var l = lum[y * w + xx]; s += l; s2 += l * l; } rowMean[y] = s / w; rowStd[y] = Math.sqrt(Math.max(0, s2 / w - rowMean[y] * rowMean[y])); }
-    var colMean = new Float32Array(w), colStd = new Float32Array(w);
-    for (var cx = 0; cx < w; cx++) { var cs = 0, cs2 = 0; for (var cy = 0; cy < h; cy++) { var l2 = lum[cy * w + cx]; cs += l2; cs2 += l2 * l2; } colMean[cx] = cs / h; colStd[cx] = Math.sqrt(Math.max(0, cs2 / h - colMean[cx] * colMean[cx])); }
-    function classOf(mean, std) { if (std > 13) return 0; if (mean < 38) return 1; if (mean > 222) return 2; if (mean >= 38 && mean <= 205) return 3; return 0; }
-    var rowClass = new Int8Array(h), colClass = new Int8Array(w);
-    for (var y2 = 0; y2 < h; y2++) {
-      if (rowStd[y2] > 9) continue;
-      var cl = classOf(rowMean[y2], rowStd[y2]); if (!cl) continue;
-      var nb = 0, n = 0; for (var k = 1; k <= 3; k++) { if (y2 - k >= 0) { nb += rowMean[y2 - k]; n++; } if (y2 + k < h) { nb += rowMean[y2 + k]; n++; } }
-      var nm = n ? nb / n : rowMean[y2];
-      if (Math.abs(rowMean[y2] - nm) > 13) rowClass[y2] = cl;
-    }
-    for (var cx2 = 0; cx2 < w; cx2++) {
-      if (colStd[cx2] > 9) continue;
-      var cl2 = classOf(colMean[cx2], colStd[cx2]); if (!cl2) continue;
-      var nb2 = 0, n2 = 0; for (var k2 = 1; k2 <= 3; k2++) { if (cx2 - k2 >= 0) { nb2 += colMean[cx2 - k2]; n2++; } if (cx2 + k2 < w) { nb2 += colMean[cx2 + k2]; n2++; } }
-      var nm2 = n2 ? nb2 / n2 : colMean[cx2];
-      if (Math.abs(colMean[cx2] - nm2) > 13) colClass[cx2] = cl2;
-    }
-    var cls = new Int8Array(w * h), orient = new Int8Array(w * h);
-    // 竖条（沿 y，thin in x）
-    for (var xv = 0; xv < w; xv++) {
-      if (colClass[xv] === 0) continue;
-      var clv = colClass[xv];
-      for (var yv = 0; yv < h; yv++) { if (brushed(xv, yv)) { cls[yv * w + xv] = clv; orient[yv * w + xv] = 1; } }
-    }
-    // 横条（沿 x，thin in y，full width）—— 与竖条不冲突处填
-    for (var yh = 0; yh < h; yh++) {
-      if (rowClass[yh] === 0) continue;
-      var clh = rowClass[yh];
-      for (var xh = 0; xh < w; xh++) { if (cls[yh * w + xh] !== 0) continue; if (brushed(xh, yh)) { cls[yh * w + xh] = clh; orient[yh * w + xh] = 0; } }
-    }
-    return { cls: cls, orient: orient, w: w, h: h, rowMean: rowMean, colMean: colMean };
-  }
-  // 渲染叠加层（笔刷区 vs 条带分类）
-  function renderBarOverlay(bars, brushCanvas) {
-    var w = bars.w, h = bars.h;
-    var oc = document.createElement('canvas'); oc.width = w; oc.height = h;
-    var octx = oc.getContext('2d');
-    var oid = octx.createImageData(w, h);
-    var od = oid.data;
-    var bm = brushCanvas ? brushCanvas.getContext('2d').getImageData(0, 0, brushCanvas.width, brushCanvas.height).data : null;
-    function brushed(px, py) { if (!bm) return false; if (px >= brushCanvas.width) px = brushCanvas.width - 1; if (py >= brushCanvas.height) py = brushCanvas.height - 1; return bm[(py * brushCanvas.width + px) * 4 + 3] > 40; }
-    for (var i = 0, p = 0; i < w * h; i++, p += 4) {
-      var c = bars.cls[i];
-      if (c === 1) { od[p] = 255; od[p + 1] = 60; od[p + 2] = 90; od[p + 3] = 130; }
-      else if (c === 2) { od[p] = 70; od[p + 1] = 150; od[p + 2] = 255; od[p + 3] = 130; }
-      else if (c === 3) { od[p] = 80; od[p + 1] = 220; od[p + 2] = 140; od[p + 3] = 130; }
-      else if (bm && brushed(i % w, (i / w) | 0)) { od[p] = 170; od[p + 1] = 120; od[p + 2] = 255; od[p + 3] = 110; }
-    }
-    octx.putImageData(oid, 0, 0);
-    var ov = $('#dbOverlay'); var disp = $('#dbBefore');
-    var dw = disp.clientWidth || 1, dh = disp.clientHeight || 1;
-    ov.width = dw; ov.height = dh;
-    ov.getContext('2d').clearRect(0, 0, dw, dh);
-    ov.getContext('2d').drawImage(oc, 0, 0, dw, dh);
-    ov.classList.remove('hidden');
-  }
-  $('#dbDetect').onclick = function () {
-    if (!dbImg) return toast('先选一张图片');
-    $('#dbStatus').textContent = '检测条带中…';
-    setTimeout(function () {
-      dbBars = detectBars(dbImg, (dbBrushOn ? dbMaskImg : null));
-      var n = 0, nb = 0, nw = 0, ng = 0;
-      for (var i = 0; i < dbBars.cls.length; i++) { var c = dbBars.cls[i]; if (c) { n++; if (c === 1) nb++; else if (c === 2) nw++; else if (c === 3) ng++; } }
-      renderBarOverlay(dbBars, (dbBrushOn ? dbMaskImg : null));
-      $('#dbClsRow').classList.remove('hidden'); $('#dbLegend').classList.remove('hidden');
-      $('#dbStatus').textContent = '识别到条带 ' + n + ' 像素（黑 ' + nb + ' / 白 ' + nw + ' / 灰 ' + ng + '）。勾选要去除的类别，点「确认并修复」。';
-    }, 30);
+  // 模式切换
+  document.querySelectorAll('#dbSeg button').forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll('#dbSeg button').forEach(function (x) { x.classList.remove('active'); });
+      b.classList.add('active'); dbMode = b.dataset.mode;
+      $('#dbAutoRow').classList.toggle('hidden', dbMode !== 'auto');
+      $('#dbAutoHint').classList.toggle('hidden', dbMode !== 'auto');
+      $('#dbManualRow').classList.toggle('hidden', dbMode !== 'manual');
+      $('#dbManualHint').classList.toggle('hidden', dbMode !== 'manual');
+      $('#dbRegionToggle').style.display = (dbMode === 'auto') ? 'inline-block' : 'none';
+      $('#dbConfirm').classList.add('hidden');
+      $('#dbPrimary').textContent = (dbMode === 'auto') ? '🔍 识别条带'
+        : (dbMode === 'manual') ? '🚀 发送到电脑消除' : '✂️ 裁剪黑边';
+      if (dbMode === 'manual' && dbImg) { $('#dbDraw').classList.remove('hidden'); dbFitDraw(); }
+      else if (dbMode !== 'manual') { $('#dbDraw').classList.add('hidden'); dbResetMask(); }
+      dbStatusMsg(dbMode === 'auto' ? '自动识别：点「识别条带」先做半透明蒙版预览，确认后再消除。'
+        : dbMode === 'manual' ? '手动消除：在图上涂白要去掉的区域，点「发送」。'
+        : '离线裁剪黑边：点「裁剪黑边」直接处理。');
+    };
+  });
+  // 默认显隐
+  $('#dbAutoRow').classList.remove('hidden');
+  $('#dbAutoHint').classList.remove('hidden');
+  $('#dbRegionToggle').style.display = 'inline-block';
+
+  // 阈值滑块（实时重跑预览，去抖）
+  $('#dbDelta').oninput = function (e) {
+    $('#dbDeltaVal').textContent = e.target.value;
+    if (dbMode === 'auto' && dbImg && dbPreviewB64) { clearTimeout(dbDeltaT); dbDeltaT = setTimeout(dbDetect, 300); }
   };
-  // 智能修复：按周围像素走势修补被去除的条带
-  function healImage(img, bars, brushCanvas, opts) {
-    var MAX = 1600, w = img.naturalWidth, h = img.naturalHeight;
-    var sc = Math.min(1, MAX / Math.max(w, h)); w = Math.round(w * sc); h = Math.round(h * sc);
-    var c = document.createElement('canvas'); c.width = w; c.height = h;
-    var x = c.getContext('2d'); x.drawImage(img, 0, 0, w, h);
-    var id = x.getImageData(0, 0, w, h), a = id.data;
-    var bm = brushCanvas ? brushCanvas.getContext('2d').getImageData(0, 0, brushCanvas.width, brushCanvas.height).data : null;
-    function brushed(px, py) { if (!bm) return true; if (px >= brushCanvas.width) px = brushCanvas.width - 1; if (py >= brushCanvas.height) py = brushCanvas.height - 1; return bm[(py * brushCanvas.width + px) * 4 + 3] > 40; }
-    var cls = bars.cls, orient = bars.orient;
-    var MAXD = 90;
-    function flanking(xx, yy, ori) {
-      // 返回 [valR,valG,valB] 在条带两侧的非条带像素均值
-      var a1 = null, b1 = null;
-      if (ori === 0) { // 横条：沿 y 找两侧
-        for (var d = 1; d <= MAXD; d++) {
-          if (yy - d >= 0 && cls[(yy - d) * w + xx] === 0) { a1 = (yy - d) * w + xx; break; }
-          if (yy + d < h && cls[(yy + d) * w + xx] === 0) { b1 = (yy + d) * w + xx; break; }
-        }
-      } else {
-        for (var d2 = 1; d2 <= MAXD; d2++) {
-          if (xx - d2 >= 0 && cls[yy * w + (xx - d2)] === 0) { a1 = yy * w + (xx - d2); break; }
-          if (xx + d2 < w && cls[yy * w + (xx + d2)] === 0) { b1 = yy * w + (xx + d2); break; }
-        }
-      }
-      return [a1, b1];
-    }
-    for (var i = 0, p = 0; i < w * h; i++, p += 4) {
-      var cl = cls[i];
-      if (!cl) continue;
-      if (!brushed(i % w, (i / w) | 0)) continue;
-      var xx = i % w, yy = (i / w) | 0;
-      if (cl === 2) { // 白条：完全漂白
-        a[p] = 255; a[p + 1] = 255; a[p + 2] = 255; a[p + 3] = 255; continue;
-      }
-      // 黑条 / 灰条：按两侧走势插值（连接边界 + 补充相邻颜色）
-      var fb = flanking(xx, yy, orient[i]);
-      if (fb[0] !== null && fb[1] !== null) {
-        var iA = fb[0] * 4, iB = fb[1] * 4;
-        var t;
-        if (orient[i] === 0) { var yA = (fb[0] / w) | 0, yB = (fb[1] / w) | 0; t = (yy - yA) / Math.max(1, yB - yA); }
-        else { var xA = fb[0] % w, xB = fb[1] % w; t = (xx - xA) / Math.max(1, xB - xA); }
-        for (var k = 0; k < 3; k++) a[p + k] = a[iA + k] * (1 - t) + a[iB + k] * t;
-        a[p + 3] = 255;
-      } else if (fb[0] !== null) { for (var k2 = 0; k2 < 3; k2++) a[p + k2] = a[fb[0] * 4 + k2]; a[p + 3] = 255; }
-      else if (fb[1] !== null) { for (var k3 = 0; k3 < 3; k3++) a[p + k3] = a[fb[1] * 4 + k3]; a[p + 3] = 255; }
-    }
-    x.putImageData(id, 0, 0);
-    return c;
+  // 笔刷大小
+  $('#dbBrushSize').oninput = function (e) { dbBrush = parseInt(e.target.value) || 34; $('#dbBrushVal').textContent = dbBrush; };
+  $('#dbBrushClear').onclick = function () { dbResetMask(); };
+  // 圈选范围（自动模式）
+  $('#dbRegionToggle').onclick = function () {
+    if (!dbImg) { toast('先选一张图片'); return; }
+    dbRegionOn = !dbRegionOn;
+    this.textContent = '✏️ 圈选范围：' + (dbRegionOn ? '开' : '关');
+    if (dbRegionOn) { $('#dbDraw').classList.remove('hidden'); dbFitDraw(); dbMaskCanvas = null; }
+    else { dbRegionStrokes = []; $('#dbDraw').classList.add('hidden'); dbResetMask(); }
+  };
+
+  // 绘制（手动遮罩 / 自动范围）
+  function dbXY(e) {
+    var r = $('#dbDraw').getBoundingClientRect();
+    return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height,
+             px: e.clientX - r.left, py: e.clientY - r.top };
   }
+  $('#dbDraw').addEventListener('pointerdown', function (e) {
+    if (dbMode === 'manual') { if (!dbImg) return; e.preventDefault(); dbDrawing = true; dbLast = null; dbDot(e); }
+    else if (dbMode === 'auto' && dbRegionOn) { e.preventDefault(); dbDrawing = true; dbRegionCur = []; dbRegionStrokes.push(dbRegionCur); }
+  });
+  $('#dbDraw').addEventListener('pointermove', function (e) {
+    if (dbMode === 'manual') { if (!dbDrawing) return; e.preventDefault(); dbStroke(e); }
+    else if (dbMode === 'auto' && dbRegionOn && dbDrawing) { e.preventDefault(); dbRegionCur.push(dbXY(e)); }
+  });
+  $('#dbDraw').addEventListener('pointerup', function () { dbDrawing = false; dbLast = null; });
+  $('#dbDraw').addEventListener('pointerleave', function () { dbDrawing = false; dbLast = null; });
+  function dbDot(e) {
+    var dc = $('#dbDraw'), p = dbXY(e), ctx = dc.getContext('2d');
+    if (!dbMaskCanvas) { dbMaskCanvas = document.createElement('canvas'); dbMaskCanvas.width = dbImg.naturalWidth; dbMaskCanvas.height = dbImg.naturalHeight; }
+    ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(p.px, p.py, dbBrush / 2, 0, 7); ctx.fill();
+    var ictx = dbMaskCanvas.getContext('2d'); ictx.fillStyle = '#fff';
+    ictx.beginPath(); ictx.arc(p.x * dbMaskCanvas.width, p.y * dbMaskCanvas.height, dbBrush / 2 * dbImg.naturalWidth / dc.clientWidth, 0, 7); ictx.fill();
+  }
+  function dbStroke(e) {
+    var dc = $('#dbDraw'), p = dbXY(e), ctx = dc.getContext('2d');
+    if (!dbMaskCanvas) { dbMaskCanvas = document.createElement('canvas'); dbMaskCanvas.width = dbImg.naturalWidth; dbMaskCanvas.height = dbImg.naturalHeight; }
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = dbBrush;
+    if (dbLast) { ctx.beginPath(); ctx.moveTo(dbLast.px, dbLast.py); ctx.lineTo(p.px, p.py); ctx.stroke(); }
+    var ictx = dbMaskCanvas.getContext('2d'); ictx.lineCap = 'round'; ictx.lineJoin = 'round'; ictx.strokeStyle = '#fff';
+    ictx.lineWidth = dbBrush * dbImg.naturalWidth / dc.clientWidth;
+    if (dbLast) { ictx.beginPath(); ictx.moveTo(dbLast.x * dbMaskCanvas.width, dbLast.y * dbMaskCanvas.height); ictx.lineTo(p.x * dbMaskCanvas.width, p.y * dbMaskCanvas.height); ictx.stroke(); }
+    dbLast = p;
+  }
+
+  // 主操作按钮
+  $('#dbPrimary').onclick = function () {
+    if (dbMode === 'auto') dbDetect();
+    else if (dbMode === 'manual') dbManualSend();
+    else dbCrop();
+  };
+  $('#dbConfirm').onclick = dbConfirm;
+  $('#dbReset').onclick = dbReset;
+  $('#dbDownload').onclick = function () {
+    if (!dbResultCanvas) return;
+    if (NB && dbRawPath) {
+      var out = dbRawPath.replace(/(\.[a-z0-9]+)$/i, '_debanded$1');
+      var ok = NB.saveBase64Image(out, dbResultCanvas.toDataURL('image/png'));
+      toast(ok ? ('已写回：' + nameOf(out)) : '保存失败');
+      if (ok && activeProject && activeProject.type === 'deband') renderRail();
+    } else {
+      var a = document.createElement('a'); a.download = 'debanded.png'; a.href = dbResultCanvas.toDataURL('image/png');
+      document.body.appendChild(a); a.click(); a.remove(); toast('已导出 debanded.png');
+    }
+  };
+
+  // —— 自动识别：preview -> confirm ——
+  function dbRegionPx() {
+    return dbRegionStrokes.map(function (poly) {
+      return poly.map(function (p) { return [Math.round(p.x * dbImg.naturalWidth), Math.round(p.y * dbImg.naturalHeight)]; });
+    });
+  }
+  function dbDetect() {
+    if (!dbImg) return toast('先选一张图片');
+    if (!dbStudioBase) return toast('请先填电脑IP并「连接测试」');
+    dbStatusMsg('识别中…');
+    var body = { image_b64: dbImg.src, preview: true, delta: parseInt($('#dbDelta').value) || 45, slant: true, min_h: 8 };
+    if (dbRegionOn && dbRegionStrokes.length) { body.region = dbRegionPx(); body.brush = 20; }
+    dbApi('/api/deband/auto', body).then(function (j) {
+      if (j.error) { dbStatusMsg('识别失败：' + j.error); return; }
+      if (j.ok === false) { dbStatusMsg('没识别出条带（可调低阈值或开「圈选范围」限定）'); $('#dbBigImg').src = dbImg.src; return; }
+      dbPreviewB64 = j.result_b64;
+      $('#dbBigImg').src = dbPreviewB64;     // 半透明蒙版叠加预览
+      $('#dbConfirm').classList.remove('hidden');
+      dbStatusMsg('已标出识别区域（半透明蒙版）。确认无误点「确认消除」。条数：' + ((j.bands && j.bands.length) || 0));
+    }).catch(function () { dbStatusMsg('请求失败：检查电脑连接 / 工作室是否运行'); });
+  }
+  function dbConfirm() {
+    if (!dbImg || !dbPreviewB64) return;
+    if (!dbStudioBase) return toast('未连接电脑');
+    dbStatusMsg('消除中…');
+    var body = { image_b64: dbImg.src, preview: false, delta: parseInt($('#dbDelta').value) || 45, slant: true, min_h: 8 };
+    if (dbRegionOn && dbRegionStrokes.length) { body.region = dbRegionPx(); body.brush = 20; }
+    dbApi('/api/deband/auto', body).then(function (j) {
+      if (j.error) { dbStatusMsg('消除失败：' + j.error); return; }
+      dbResultB64 = j.result_b64;
+      $('#dbBigImg').src = dbResultB64;
+      dbShowResult(dbResultB64);
+      dbStatusMsg('消除完成。可「写回/导出」。');
+    }).catch(function () { dbStatusMsg('请求失败'); });
+  }
+
+  // —— 手动消除：iopaint inpaint ——
+  function ensureIopaint(cb) {
+    fetch(dbStudioBase + '/api/iopaint/status').then(function (r) { return r.json(); }).then(function (j) {
+      if (j.running) return cb(true);
+      fetch(dbStudioBase + '/api/iopaint/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      var n = 0;
+      var t = setInterval(function () {
+        n++;
+        fetch(dbStudioBase + '/api/iopaint/status').then(function (r) { return r.json(); }).then(function (k) {
+          if (k.running || n > 20) { clearInterval(t); cb(k.running); }
+        }).catch(function () { if (n > 20) { clearInterval(t); cb(false); } });
+      }, 3000);
+    }).catch(function () { cb(false); });
+  }
+  function dbManualSend() {
+    if (!dbImg) return toast('先选一张图片');
+    if (!dbMaskCanvas) return toast('先在图上涂白要消除的区域');
+    if (!dbStudioBase) return toast('请先填电脑IP并「连接测试」');
+    dbStatusMsg('启动 iopaint 并发送中…');
+    ensureIopaint(function (ok) {
+      if (!ok) { dbStatusMsg('iopaint 启动失败，检查电脑工作室'); return; }
+      var maskB64 = dbMaskCanvas.toDataURL('image/png');
+      fetch(dbIopaintBase + '/api/v1/inpaint', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: dbImg.src, mask: maskB64 })
+      }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.blob(); })
+        .then(function (blob) {
+          var rd = new FileReader();
+          rd.onload = function () { dbResultB64 = rd.result; $('#dbBigImg').src = dbResultB64; dbShowResult(dbResultB64); dbStatusMsg('消除完成。可「写回/导出」。'); };
+          rd.readAsDataURL(blob);
+        })
+        .catch(function (e) { dbStatusMsg('消除失败：' + e.message + '（iopaint 需电脑端 LaMa 就绪）'); });
+    });
+  }
+  function dbShowResult(b64) {
+    var im = new Image();
+    im.onload = function () {
+      var c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+      c.getContext('2d').drawImage(im, 0, 0);
+      dbResultCanvas = c; $('#dbDownload').style.display = 'inline-block';
+    };
+    im.src = b64;
+  }
+
+  // —— 离线裁剪黑边（无需电脑）——
   function cropBlackBorders(img) {
     var c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
     var x = c.getContext('2d'); x.drawImage(img, 0, 0);
@@ -1340,82 +1479,16 @@ input.inp{width:100%;background:var(--panel);color:var(--txt);border:1px solid v
     nc.getContext('2d').drawImage(c, left, top, nc.width, nc.height, 0, 0, nc.width, nc.height);
     return nc;
   }
-  function dbSyncMask() {
-    if (!dbImg) return;
-    var disp = $('#dbBefore'), dw = disp.clientWidth || 1, dh = disp.clientHeight || 1;
-    var mc = $('#dbMask'); mc.width = dw; mc.height = dh;
-    if (!dbMaskImg) dbMaskImg = document.createElement('canvas');
-    dbMaskImg.width = dbImg.naturalWidth; dbMaskImg.height = dbImg.naturalHeight;
-  }
-  function dbDot(e) {
-    var mc = $('#dbMask'), r = mc.getBoundingClientRect();
-    var sx = dbImg.naturalWidth / r.width, sy = dbImg.naturalHeight / r.height;
-    var dx = e.clientX - r.left, dy = e.clientY - r.top, ix = dx * sx, iy = dy * sy;
-    var dctx = mc.getContext('2d'), ictx = dbMaskImg.getContext('2d');
-    dctx.fillStyle = 'rgba(255,80,90,0.55)'; dctx.beginPath(); dctx.arc(dx, dy, dbBrush / 2, 0, 7); dctx.fill();
-    ictx.fillStyle = 'rgba(255,255,255,1)'; ictx.beginPath(); ictx.arc(ix, iy, dbBrush * sx / 2, 0, 7); ictx.fill();
-  }
-  function dbStroke(e) {
-    var mc = $('#dbMask'), r = mc.getBoundingClientRect();
-    var sx = dbImg.naturalWidth / r.width, sy = dbImg.naturalHeight / r.height;
-    var dx = e.clientX - r.left, dy = e.clientY - r.top, ix = dx * sx, iy = dy * sy;
-    var dctx = mc.getContext('2d'), ictx = dbMaskImg.getContext('2d');
-    dctx.lineCap = 'round'; dctx.lineJoin = 'round'; ictx.lineCap = 'round'; ictx.lineJoin = 'round';
-    dctx.strokeStyle = 'rgba(255,80,90,0.55)'; dctx.lineWidth = dbBrush;
-    ictx.strokeStyle = 'rgba(255,255,255,1)'; ictx.lineWidth = dbBrush * sx;
-    if (dbStroke._last) {
-      dctx.beginPath(); dctx.moveTo(dbStroke._last.x, dbStroke._last.y); dctx.lineTo(dx, dy); dctx.stroke();
-      ictx.beginPath(); ictx.moveTo(dbStroke._last.ix, dbStroke._last.iy); ictx.lineTo(ix, iy); ictx.stroke();
-    }
-    dbStroke._last = { x: dx, y: dy, ix: ix, iy: iy };
-  }
-  $('#dbBrushToggle').onclick = function () {
-    if (!dbImg) { toast('先选一张图片'); return; }
-    dbBrushOn = !dbBrushOn;
-    if (dbBrushOn) { dbSyncMask(); $('#dbMask').classList.remove('hidden'); if (dbMaskImg) dbMaskImg.getContext('2d').clearRect(0, 0, dbMaskImg.width, dbMaskImg.height); $('#dbMask').getContext('2d').clearRect(0, 0, $('#dbMask').width, $('#dbMask').height); }
-    else { $('#dbMask').classList.add('hidden'); if (dbMaskImg) dbMaskImg.getContext('2d').clearRect(0, 0, dbMaskImg.width, dbMaskImg.height); $('#dbMask').getContext('2d').clearRect(0, 0, $('#dbMask').width, $('#dbMask').height); }
-    this.textContent = '✏️ 笔刷圈选：' + (dbBrushOn ? '开' : '关');
-  };
-  $('#dbBrushSize').oninput = function (e) { dbBrush = parseInt(e.target.value) || 44; $('#dbBrushVal').textContent = dbBrush; };
-  $('#dbBrushClear').onclick = function () { if (dbMaskImg) dbMaskImg.getContext('2d').clearRect(0, 0, dbMaskImg.width, dbMaskImg.height); var mc = $('#dbMask'); mc.getContext('2d').clearRect(0, 0, mc.width, mc.height); $('#dbOverlay').classList.add('hidden'); };
-  var dbMC = $('#dbMask');
-  dbMC.addEventListener('pointerdown', function (e) { if (!dbBrushOn) return; e.preventDefault(); dbMasking = true; dbStroke._last = null; dbDot(e); });
-  dbMC.addEventListener('pointermove', function (e) { if (!dbBrushOn || !dbMasking) return; e.preventDefault(); dbStroke(e); });
-  dbMC.addEventListener('pointerup', function () { dbMasking = false; dbStroke._last = null; });
-  dbMC.addEventListener('pointerleave', function () { dbMasking = false; dbStroke._last = null; });
-  $('#dbRun').onclick = function () {
+  function dbCrop() {
     if (!dbImg) return toast('先选一张图片');
-    $('#dbStatus').textContent = '修复中…';
+    dbStatusMsg('裁剪中…');
     setTimeout(function () {
-      var clsSel = { 1: $('#dbClsBlack').checked, 2: $('#dbClsWhite').checked, 3: $('#dbClsGray').checked };
-      var src = dbImg;
-      if (dbMode === 'crop' || dbMode === 'both') src = cropBlackBorders(src);
-      if (dbMode === 'heal' || dbMode === 'both') {
-        if (!dbBars) { dbBars = detectBars(src, (dbBrushOn ? dbMaskImg : null)); }
-        // 仅保留勾选类别
-        var bars = { cls: new Int8Array(dbBars.cls), orient: dbBars.orient, w: dbBars.w, h: dbBars.h };
-        for (var i = 0; i < bars.cls.length; i++) { if (bars.cls[i] && !clsSel[bars.cls[i]]) bars.cls[i] = 0; }
-        var res = healImage(src, bars, (dbBrushOn ? dbMaskImg : null));
-        dbResultCanvas = res;
-      } else {
-        dbResultCanvas = src;
-      }
-      $('#dbAfter').src = dbResultCanvas.toDataURL('image/png'); $('#dbAfter').style.display = 'block';
-      $('#dbDownload').style.display = 'inline-block';
-      $('#dbStatus').textContent = '完成（' + dbResultCanvas.width + '×' + dbResultCanvas.height + '）';
+      var c = cropBlackBorders(dbImg);
+      dbResultCanvas = c; dbResultB64 = c.toDataURL('image/png');
+      $('#dbBigImg').src = dbResultB64; $('#dbDownload').style.display = 'inline-block';
+      dbStatusMsg('已裁剪黑边（' + c.width + '×' + c.height + '）。可「写回/导出」。');
     }, 30);
-  };
-  $('#dbDownload').onclick = function () {
-    if (!dbResultCanvas) return;
-    if (NB && dbRawPath) {
-      var out = dbRawPath.replace(/(\.[a-z0-9]+)$/i, '_debanded$1');
-      var ok = NB.saveBase64Image(out, dbResultCanvas.toDataURL('image/png'));
-      toast(ok ? ('已写回：' + nameOf(out)) : '保存失败');
-      if (ok && activeProject && activeProject.type === 'deband') renderRail();
-    } else {
-      var a = document.createElement('a'); a.download = 'debanded.png'; a.href = dbResultCanvas.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove(); toast('已导出 debanded.png');
-    }
-  };
+  }
 
   /* ===== FleshOut + 本地模板管理 ===== */
   document.querySelectorAll('#flSeg button').forEach(function (b) {
